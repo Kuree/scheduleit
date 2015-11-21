@@ -1,18 +1,20 @@
 import requests 
 import re
 from bs4 import BeautifulSoup
+import json
 
 def html_get_text(t):
     return t.get_text().encode("ascii", "ignore").strip()
 
 def main():
-    r_dept = requests.get("https://www.banner.bucknell.edu/BANPRD/hwzkschd.P_Bucknell_SchedbyDept")
+    r_dept = requests.get("https://www.bannerssb.bucknell.edu/ERPPRD/hwzkschd.P_Bucknell_SchedbyDept")
     r_dept_text = r_dept.text.encode("utf-8")
     pattern = r'value=\"(\w{4})\"'
     dept_search = re.findall(pattern, r_dept_text, re.I)
     # print r_dept_text
     print dept_search
     if dept_search:
+        print(dept_search)
         for dept in dept_search:
             payload = {
                 'lookopt' : 'DPT',
@@ -20,8 +22,9 @@ def main():
                 'term' : '201605',
                 'param1' : dept,
                 'openopt' : 'ALL'}
-            r_form = requests.post("https://www.banner.bucknell.edu/BANPRD/hwzkschd.P_Bucknell_SchedDisplay", 
+            r_form = requests.post("https://www.bannerssb.bucknell.edu/ERPPRD/hwzkschd.P_Bucknell_SchedDisplay", 
                     data=payload)
+
             form_text = r_form.text#.encode("utf-8")
             # TODO:
             # one thing to notice is that even if you query an invalid dept,
@@ -45,6 +48,8 @@ def main():
                     entry_dic[x[0]] = x[1]
                 course_table.append(entry_dic)
             print course_table
+            with open("courses.json", 'w') as f:
+                json.dump(course_table, f)
             return
             
 
