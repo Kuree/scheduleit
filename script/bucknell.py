@@ -12,7 +12,7 @@ import glob
 
 TEMP_FILE_FOLDER = "../temp/bucknell"
 SCHOOL_NAME = "bucknell"
-BAN_LIST = ["OPEN", "OFFG", "OFFD", "OFFF", "OFFL"]
+BAN_LIST = ["OPEN", "OFFG", "OFFD", "OFFF", "OFFL", "LEGL", "FLMS"]
 
 def html_get_text(t):
     return t.get_text().encode("ascii", "ignore").strip()
@@ -62,6 +62,23 @@ def parse_meeting_time(raw_time):
             day_flattern_dict[day] |= entry[day]
     return [day_flattern_dict[key] for key in day_flattern_dict]
     
+    
+def linking_class(course_table, course_entry):
+    raw_names = course_entry["n"].split()
+    name = raw_names[0] + " " + raw_names[1]
+    course_entry["l"] = []
+    if name[-1] == "R" or name[-1] == "L":
+        return
+    for course in course_table:
+        name_token = course["Course"].split()
+        tag = name_token[0] + " " + name_token[1]
+        if tag[-1] == "R" or tag[-1] == "L":
+            tag = tag[:-1]
+            if tag == name:
+                crn = course["CRN"]
+                course_entry["l"].append(crn)
+    
+    
 def process_course_table(course_table):
     result = {}
     for course_entry in course_table:
@@ -84,7 +101,11 @@ def process_course_table(course_table):
         new_entry["s"] = [crn, course_search_name]
         
         new_entry["d"] = course_entry["desc"]
-
+        
+        
+        # linking all the classes together
+        linking_class(course_table, new_entry)
+        
         result[crn] = new_entry
     print "Finished processing tables" 
     return result
