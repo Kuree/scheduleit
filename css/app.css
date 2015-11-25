@@ -1,4 +1,4 @@
-#search .tt-dropdown-menu {
-  max-height: 150px;
-  overflow-y: auto;
+#.empty-message {
+    padding: 5px 10px;
+    text-align: center;
 }

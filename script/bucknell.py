@@ -12,7 +12,7 @@ import glob
 
 TEMP_FILE_FOLDER = "../temp/bucknell"
 SCHOOL_NAME = "bucknell"
-
+BAN_LIST = ["OPEN", "OFFG", "OFFD", "OFFF", "OFFL"]
 
 def html_get_text(t):
     return t.get_text().encode("ascii", "ignore").strip()
@@ -68,25 +68,34 @@ def process_course_table(course_table):
         if not course_entry["CRN"].isdigit():
             continue
         new_entry = {}
-        new_entry["instructor"] = course_entry["Instructor"]
-        # in case of multiple rooms. The numbwe of entries should match the meeting time
-        new_entry["room"] = course_entry["Room"].split('\n') 
-        new_entry["name"] = course_entry["Course"]
+        new_entry["i"] = course_entry["Instructor"]
+        # in case of multiple rooms. The number of entries should match the meeting time
+        new_entry["r"] = course_entry["Room"].split('\n') 
+        new_entry["n"] = course_entry["Course"]
         time_entry = course_entry["Meeting Time"]
         if time_entry == "":
             continue
-        new_entry["time"] = parse_meeting_time(time_entry) if time_entry != "TBA" else [0, 0, 0, 0, 0]
+        new_entry["t"] = parse_meeting_time(time_entry) if time_entry != "TBA" else [0, 0, 0, 0, 0]
             
         # add search tag
         crn = course_entry["CRN"]
-        course_name_tokens = new_entry["name"].split()
+        course_name_tokens = new_entry["n"].split()
         course_search_name = course_name_tokens[0] + " " + course_name_tokens[1]
-        new_entry["search_tag"] = [crn, course_search_name]
+        new_entry["s"] = [crn, course_search_name]
+        
+        new_entry["d"] = course_entry["desc"]
 
         result[crn] = new_entry
     print "Finished processing tables" 
     return result
-    
+
+def get_desc(term, dept, course_number):
+    query_str = "https://www.bannerssb.bucknell.edu/ERPPRD/bwckctlg.p_disp_course_detail?cat_term_in=" + term +\
+    "&subj_code_in=" + dept + "&crse_numb_in=" + course_number
+    r_desc_text = requests.get(query_str).text.encode('utf-8')
+    p = re.compile(ur'\<td class=\"ntdefault\"\>\n(?P<desc>.*)', re.IGNORECASE)
+    match = re.search(p,  r_desc_text)
+    return match.group('desc')
     
 def main():
     # check the temp folder
@@ -104,7 +113,7 @@ def main():
         print(dept_search)
         for dept in dept_search:
             # OPEN contains in the dept as well. need to exclude it
-            if dept == "OPEN": continue
+            if dept in BAN_LIST: continue
             
             if os.path.isfile(TEMP_FILE_FOLDER + "/" + dept + ".json"):
                 print "Load from temp file", dept
@@ -154,7 +163,14 @@ def main():
                 entry_dic = {}
                 for x in entry:
                     entry_dic[x[0]] = x[1]
+                    
+                
+                # get description
+                course_number = entry_dic["Course"].split()[1]
+                desc = get_desc('201605', dept, course_number)
+                entry_dic["desc"] = desc
                 dept_table.append(entry_dic)
+                
                     
             with open(TEMP_FILE_FOLDER + "/" + dept + ".json", "w") as f:
                 json.dump(dept_table, f)
@@ -177,17 +193,11 @@ def main():
         os.makedirs(path)
     
     with open(path +  "/courses.json", 'w') as f:
-        json.dump(result, f)
+        json.dump(result, f, separators=(',',':'))
         print "course file dumped"
         
-    with open(path +  "/search.json", 'w') as f:
-        search_lists = []
-        for entry in result:
-            search_lists += result[entry]["search_tag"]
-        json.dump(search_lists, f)
-        print "search list dumped"
     
 
         
 if __name__ == "__main__":
-     main()
+    main()
