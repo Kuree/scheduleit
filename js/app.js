@@ -39,6 +39,19 @@ $(function(){
             suggestion: Handlebars.compile('<div><strong>{{n}}</strong> <br> {{d}}</div>')
             }
         });
+        
+        $('#search .typeahead').bind('typeahead:select', function(ev, suggestion) {
+            // use handlebar to compile
+            var rawTemplate = '<span class="tag label label-info">\
+<span>{{n}}</span>\
+<a><i class="remove glyphicon glyphicon-remove-sign glyphicon-white"></i></a> \
+</span>';
+            var compiledTemplate = Handlebars.compile(rawTemplate);
+            var html = compiledTemplate(suggestion);
+            $('#course-selection').append(html);
+            // clear the search input
+            $('.typeahead').typeahead('val', '');
+        });
     });
       
     
