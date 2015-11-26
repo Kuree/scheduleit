@@ -66,17 +66,19 @@ def parse_meeting_time(raw_time):
 def linking_class(course_table, course_entry):
     raw_names = course_entry["n"].split()
     name = raw_names[0] + " " + raw_names[1]
-    course_entry["l"] = []
+    course_entry["l"] = {}
     if name[-1] == "R" or name[-1] == "L":
         return
     for course in course_table:
         name_token = course["Course"].split()
         tag = name_token[0] + " " + name_token[1]
         if tag[-1] == "R" or tag[-1] == "L":
-            tag = tag[:-1]
-            if tag == name:
+            if tag[:-1] == name:
                 crn = course["CRN"]
-                course_entry["l"].append(crn)
+                if tag not in course_entry["l"]:
+                    course_entry["l"][tag] = [crn]
+                else:
+                    course_entry["l"][tag].append(crn)
     
     
 def process_course_table(course_table):
