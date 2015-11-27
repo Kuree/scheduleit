@@ -43,27 +43,25 @@ $(function(){
                 'Unable to find any courses that match the query',
               '</div>'
             ].join('\n'),
-            suggestion: Handlebars.compile('<div><strong>{{n}}</strong> <br> {{d}}</div>')
+            suggestion: function(e) { return '<div><strong>' + e.n + '</strong> <br> ' + e.d + '</div>';}
             }
         });
         
         $('#search .typeahead').bind('typeahead:select', function(ev, suggestion) {
             // use handlebar to compile
             var random_id = guidGenerator();
-            var rawTemplate = '<span class="tag label label-info" ref="' + random_id + '">\
-<span>{{n}}</span>\
+            var html_main = '<span class="tag label label-info" ref="' + random_id + '">\
+<span>' + suggestion.n + '</span>\
 <a class="remove glyphicon glyphicon-remove-sign glyphicon-white"></a> \
 </span>';
-            var compiledTemplate = Handlebars.compile(rawTemplate);
-            var html_main = compiledTemplate(suggestion);
             $('#course-selection').append(html_main);
             
             // handle linked courses
             if(Object.keys(suggestion.l).length > 0){
                 $.each(suggestion.l, function(key, value){
                     var tooltip = suggestion.n + " requires " + key;
-                    var link_template = '<span class="tag label label-info" data-toggle="tooltip" data-placement="bottom" title="' + tooltip + '" ref="' + random_id + '">' + key + '</span>'
-                    $('#course-selection').append(link_template);
+                    var link_html = '<span class="tag label label-info" data-toggle="tooltip" data-placement="bottom" title="' + tooltip + '" ref="' + random_id + '">' + key + '</span>'
+                    $('#course-selection').append(link_html);
                     $('[data-toggle="tooltip"]').tooltip()
                 });
                 
