@@ -82,7 +82,8 @@ def linking_class(course_table, course_entry):
     
     
 def process_course_table(course_table):
-    result = {}
+    course_result = {}
+    search_result = []
     for course_entry in course_table:
         if not course_entry["CRN"].isdigit():
             continue
@@ -95,22 +96,61 @@ def process_course_table(course_table):
         if time_entry == "":
             continue
         new_entry["t"] = parse_meeting_time(time_entry) if time_entry != "TBA" else [0, 0, 0, 0, 0]
-            
-        # add search tag
+        
         crn = course_entry["CRN"]
-        course_name_tokens = new_entry["n"].split()
-        course_search_name = course_name_tokens[0] + " " + course_name_tokens[1]
-        new_entry["s"] = [crn, course_search_name]
         
-        new_entry["d"] = course_entry["desc"]
-        
+        # add search tag
+        # NOTE: CHOOSE A DIFFERENT IMPLEMENTATION TO IMPROVE LOAD TIME
+        # course_name_tokens = new_entry["n"].split()
+        # course_search_name = course_name_tokens[0] + " " + course_name_tokens[1]
+        # new_entry["s"] = [crn, course_search_name]
         
         # linking all the classes together
+        # only for search, need to delete the field after finishing the search list
         linking_class(course_table, new_entry)
         
-        result[crn] = new_entry
+        course_result[crn] = new_entry
+        
+        title = course_entry["Title"]
+        
+        # process the search list
+        # each entry format
+        
+        # note for performance purpose
+        # CRN list doesn't have description and title
+        # the front-end will pull it from the course
+        # also note that most classes doesn't have linked class
+        # remove it from the JSON will reduce the size
+        # It has two reasons. 1. using CRN to store description or title will cause duplication.
+        # most people will use course name rather than CRN
+        name = new_entry["n"]
+        name_tokens =name.split()
+        name = name_tokens[0] + " " + name_tokens[1]
+        if name[-1] == "R" or name[-1] == "L": 
+            continue
+            
+        if len(new_entry["l"]) > 0:
+            search_result.append({"n" : crn, "l" : new_entry["l"], "crn" : [crn]})
+        else:
+            search_result.append({"n" : crn, "crn" : [crn]})
+        existing_list = [x for x in search_result if x["n"] == name]
+        
+        if len(existing_list) == 0:
+            if len(new_entry["l"]) > 0:
+                search_result.append({"n" : name, "d" : course_entry["desc"], "l" : new_entry["l"], "crn" : [crn], "ti" : title})
+            else:
+                search_result.append({"n" : name, "d" : course_entry["desc"], "crn" : [crn], "ti" : title})
+        else:
+            existing_list[0]["crn"].append(crn)
+            
+        
+    # deleting the l entry in the course_result
+    for key in course_result:
+        course = course_result[key]
+        del course["l"]
+        
     print "Finished processing tables" 
-    return result
+    return course_result, search_result
 
 def get_desc(term, dept, course_number):
     query_str = "https://www.bannerssb.bucknell.edu/ERPPRD/bwckctlg.p_disp_course_detail?cat_term_in=" + term +\
@@ -208,7 +248,7 @@ def main():
         with open(filename) as f:
             for entry in json.load(f):
                 course_table.append(entry)
-    result = process_course_table(course_table)
+    result, search = process_course_table(course_table)
     
     # create a folder if it doesn't exit
     path = "../data/" + SCHOOL_NAME
@@ -218,6 +258,10 @@ def main():
     with open(path +  "/courses.json", 'w') as f:
         json.dump(result, f, separators=(',',':'))
         print "course file dumped"
+        
+    with open(path +  "/search.json", 'w') as f:
+        json.dump(search, f, separators=(',',':'))
+        print "search file dumped"
         
     
 
