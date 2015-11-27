@@ -11,9 +11,9 @@
   display: inline-block;
 }
 .tag a {
-  color: #bbb;
+  color: #fff;
   cursor: pointer;
-  opacity: 0.6;
+  text-decoration: none;
 }
 .tag a:hover {
   opacity: 1.0
