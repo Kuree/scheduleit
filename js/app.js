@@ -49,6 +49,7 @@ function schedule(selected_course, courses, search_items){
 
 function render_schedule(classes){
     // clear the old stuff, if any
+    $("#schedule-container").children().fadeOut(1000);
     $("#schedule-container").empty();
     
     var marked_classes = [];
@@ -94,17 +95,33 @@ function render_schedule(classes){
     for(var i = 0; i < marked_classes.length; i++){
         var class_entry = marked_classes[i];
         var left_margin = (class_entry.day / 5.0 * 100).toString() + "%";
-        var top_margin = (class_entry.start / 28.0 * 100).toString() + "%";
+        var top_margin = (class_entry.start / 28.0 * 100 + 3).toString() + "%";
         var height = ((class_entry.duration - 0.2) / 28.0 * 100).toString() + "%";
         var block = $("<div/>");
         block.addClass("class-block");
         block.css("margin-top", top_margin);
         block.css("margin-left", left_margin);
         block.css("height", height);
-        block.css("width", "14%");
+        block.css("width", "13.5%");
         
         block.css("background", colors[class_entry.i]);
+        block.hide().fadeIn(1000);
         $("#schedule-container").append(block);
+    }
+    
+    // add days
+    var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    for(var i = 0; i < 5; i++){
+        var day_name = weekdays[i];
+        var day = $('<div><p class = "weekday-text" >' + day_name + "</p></div>");
+        day.addClass("weekday-display");
+        var left_margin = (i / 5.0 * 100).toString() + "%";
+        var top_margin = "0%";
+        day.css("margin-top", top_margin);
+        day.css("margin-left", left_margin);
+        day.css("width", "13.5%");
+        day.hide().fadeIn(1000);
+        $("#schedule-container").append(day);
     }
     
 }

@@ -8,7 +8,6 @@
   overflow-y: auto;
 }
 
-
 .class-block {
   -webkit-box-sizing: content-box;
   -moz-box-sizing: content-box;
@@ -27,14 +26,24 @@
   position:absolute;
 }
 
+.weekday-display{
+  position:absolute;
+  font: normal 16px/1 "Times New Roman", Times, serif;
+  text-align: center;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}
+
+.weekday-text{
+  text-align: center
+}
+
 #schedule-container{
     height:700px; 
 }
-
-
-
-
-
 
 /* adapted from http://maxwells.github.io/bootstrap-tags.html */
 .tag {
