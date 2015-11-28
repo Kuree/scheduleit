@@ -48,6 +48,9 @@ function schedule(selected_course, courses, search_items){
 }
 
 function render_schedule(classes){
+    // clear the old stuff, if any
+    $("#schedule-container").empty();
+    
     var marked_classes = [];
     // marking classes
     for(var i = 0 ; i < classes.length; i++){
@@ -69,7 +72,7 @@ function render_schedule(classes){
                     if(has_class){
                         // a class ends
                         has_class = false;
-                        marked_classes.push({'crn' : classes.crn, "day": j, "duration" : duration_count, "start" : first_hit});
+                        marked_classes.push({"i" : i, 'crn' : classes.crn, "day": j, "duration" : duration_count, "start" : first_hit});
                         duration_count = 0;
                     }
                 }
@@ -77,10 +80,16 @@ function render_schedule(classes){
             
             // if it finishes at the ends
             if(has_class){
-                marked_classes.push({'crn' : classes.crn, "day": j, "duration" : duration_count, "start" : first_hit});
+                marked_classes.push({"i" : i, 'crn' : classes.crn, "day": j, "duration" : duration_count, "start" : first_hit});
             }
         }
     }
+    
+    var colors = Please.make_color({
+        colors_returned: classes.length,
+        format: ("rgb-string"),
+        
+    });
     
     for(var i = 0; i < marked_classes.length; i++){
         var class_entry = marked_classes[i];
@@ -92,7 +101,9 @@ function render_schedule(classes){
         block.css("margin-top", top_margin);
         block.css("margin-left", left_margin);
         block.css("height", height);
-        block.css("width", "14.5%");
+        block.css("width", "14%");
+        
+        block.css("background", colors[class_entry.i]);
         $("#schedule-container").append(block);
     }
     
@@ -142,7 +153,7 @@ function is_single_class_conflicted(class1, class2){
     var time1 = class1.t;
     var time2 = class2.t;
     for(var i = 0; i < 5; i++){
-        if(time1[i] & time2[i] != 0){
+        if((time1[i] & time2[i]) != 0){
             return true;
         }
     }
@@ -157,7 +168,6 @@ function is_new_class_conflicted(classes, new_class){
     }
     return false;
 }
-
 
 function setup_typeahead(search_items){
     var courses = new Bloodhound({
@@ -230,11 +240,8 @@ function handle_selection(selected_course){
 }
 
 
-$(function(){
-    
+$(function(){    
     // download the search_items
-    
-    // this is for temp test only
     search_list = [];
     
     $.getJSON("data/bucknell/search.json", function(search_items){
