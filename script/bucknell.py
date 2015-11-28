@@ -60,7 +60,7 @@ def parse_meeting_time(raw_time):
     for day in day_flattern_dict:
         for entry in parse_result:
             day_flattern_dict[day] |= entry[day]
-    return [day_flattern_dict[key] for key in day_flattern_dict]
+    return [day_flattern_dict["M"]] + [day_flattern_dict["T"]] + [day_flattern_dict["W"]] + [day_flattern_dict["R"]]+[day_flattern_dict["F"]]
     
     
 def linking_class(course_table, course_entry):

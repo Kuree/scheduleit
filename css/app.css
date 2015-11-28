@@ -3,6 +3,40 @@
     text-align: center;
 }
 
+.tt-menu {
+  height: auto;
+  overflow-y: auto;
+}
+
+
+.class-block {
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  padding: 20px;
+  overflow: hidden;
+  border: none;
+  font: normal 16px/1 "Times New Roman", Times, serif;
+  color: rgba(255,255,255,1);
+  text-align: center;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  background: #0199d9;
+  -webkit-box-shadow: 4px 4px 1px 0 rgba(0,0,0,0.3) ;
+  box-shadow: 4px 4px 1px 0 rgba(0,0,0,0.3) ;
+  text-shadow: 1px 1px 1px rgba(0,0,0,0.2) ;
+  position:absolute;
+}
+
+#schedule-container{
+    height:700px; 
+}
+
+
+
+
+
+
 /* adapted from http://maxwells.github.io/bootstrap-tags.html */
 .tag {
   font-size: 14px;
