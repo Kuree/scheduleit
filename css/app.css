@@ -28,7 +28,16 @@
 
 .weekday-display{
   position:absolute;
-  font: normal 16px/1 "Times New Roman", Times, serif;
+  text-align: center;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+}
+
+.day-display{
+  position:absolute;
   text-align: center;
   -o-text-overflow: ellipsis;
   text-overflow: ellipsis;
@@ -38,11 +47,15 @@
 }
 
 .weekday-text{
-  text-align: center
+  text-align: center;
 }
 
 #schedule-container{
+    padding-top: 10px;
     height:700px; 
+    min-width: 400;
+    overflow:hidden;
+    overflow-x:hidden;
 }
 
 /* adapted from http://maxwells.github.io/bootstrap-tags.html */

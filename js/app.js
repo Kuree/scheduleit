@@ -43,7 +43,7 @@ function schedule(selected_course, courses, search_items){
         available_classes.push(class_entry);
     });
     select_course(current_classes, available_classes, result);
-    console.log(result);
+    // console.log(result);
     render_schedule(result[0]);
 }
 
@@ -102,13 +102,19 @@ function render_schedule(classes){
         block.css("margin-top", top_margin);
         block.css("margin-left", left_margin);
         block.css("height", height);
-        block.css("width", "13.5%");
+        block.css("width", "13%");
         
         block.css("background", colors[class_entry.i]);
         block.hide().fadeIn(1000);
         $("#schedule-container").append(block);
     }
     
+    render_scheule_table();
+    
+}
+
+
+function render_scheule_table(){
     // add days
     var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
     for(var i = 0; i < 5; i++){
@@ -119,13 +125,32 @@ function render_schedule(classes){
         var top_margin = "0%";
         day.css("margin-top", top_margin);
         day.css("margin-left", left_margin);
-        day.css("width", "13.5%");
+        day.css("width", "13%");
         day.hide().fadeIn(1000);
         $("#schedule-container").append(day);
     }
-    
+    // add time lines
+    for(var i = 8; i <= 22; i++){
+        var time_name = ""
+        if(i < 12){
+            time_name = i.toString() + "AM";
+        }else if(i == 12){
+            time_name = "12 PM";
+        }else{
+            time_name = (i - 12).toString() + " PM";
+        }
+        
+        var time = $('<div><p class = "weekday-text" >' + time_name + "</p></div>");
+        time.addClass("day-display");
+        var left_margin = "-20px";
+        var top_margin = ((i - 8)/ 14.0 * 100 + 3).toString() + "%";
+        time.css("margin-top", top_margin);
+        time.css("margin-left", left_margin);
+        time.css("width", "auto");
+        time.hide().fadeIn(1000);
+        $("#schedule-container").append(time);
+    }
 }
-
 
 function copy_array(old_array){
     // this does shallow copy of an array
