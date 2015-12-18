@@ -67,12 +67,12 @@ def linking_class(course_table, course_entry):
     raw_names = course_entry["n"].split()
     name = raw_names[0] + " " + raw_names[1]
     course_entry["l"] = {}
-    if name[-1] == "R" or name[-1] == "L":
+    if name[-1] == "R" or name[-1] == "L" or name[-1] == "P":
         return
     for course in course_table:
         name_token = course["Course"].split()
         tag = name_token[0] + " " + name_token[1]
-        if tag[-1] == "R" or tag[-1] == "L":
+        if tag[-1] == "R" or tag[-1] == "L" or tag[-1] == "P":
             if tag[:-1] == name:
                 crn = course["CRN"]
                 if tag not in course_entry["l"]:
@@ -126,7 +126,7 @@ def process_course_table(course_table):
         name = new_entry["n"]
         name_tokens =name.split()
         name = name_tokens[0] + " " + name_tokens[1]
-        if name[-1] == "R" or name[-1] == "L": 
+        if name[-1] == "R" or name[-1] == "L" or name[-1] == "P": 
             continue
             
         if len(new_entry["l"]) > 0:

@@ -43,17 +43,15 @@ function schedule(selected_course, courses, search_items){
         available_classes.push(class_entry);
     });
     select_course(current_classes, available_classes, result);
-    // console.log(result);
+    console.log(result);
     render_schedule(result[0]);
 }
 
 function render_schedule(classes){
-    // clear the old stuff, if any
-    $("#schedule-container").children().fadeOut(1000);
-    $("#schedule-container").empty();
-    
-    var marked_classes = [];
+    // clear the old reference. Due to the implementation of fullCalendar, it's very clumsy
+    $('#calendar').fullCalendar( 'removeEventSource', class_events);
     // marking classes
+    var marked_classes = [];
     for(var i = 0 ; i < classes.length; i++){
         for(var j = 0; j < classes[i].t.length; j++){
             // use a simple state machine here
@@ -73,7 +71,7 @@ function render_schedule(classes){
                     if(has_class){
                         // a class ends
                         has_class = false;
-                        marked_classes.push({"i" : i, 'crn' : classes.crn, "day": j, "duration" : duration_count, "start" : first_hit});
+                        marked_classes.push({"n" : classes[i].n, "i" : i, 'crn' : classes[i].crn, "day": j, "duration" : duration_count, "start" : first_hit});
                         duration_count = 0;
                     }
                 }
@@ -81,7 +79,7 @@ function render_schedule(classes){
             
             // if it finishes at the ends
             if(has_class){
-                marked_classes.push({"i" : i, 'crn' : classes.crn, "day": j, "duration" : duration_count, "start" : first_hit});
+                marked_classes.push({"n" : classes[i].n, "i" : i, 'crn' : classes.crn, "day": j, "duration" : duration_count, "start" : first_hit});
             }
         }
     }
@@ -92,65 +90,26 @@ function render_schedule(classes){
         
     });
     
+    class_events.length = 0;
+    
     for(var i = 0; i < marked_classes.length; i++){
-        var class_entry = marked_classes[i];
-        var left_margin = (class_entry.day / 5.0 * 100).toString() + "%";
-        var top_margin = (class_entry.start / 28.0 * 100 + 3).toString() + "%";
-        var height = ((class_entry.duration - 0.2) / 28.0 * 100).toString() + "%";
-        var block = $("<div/>");
-        block.addClass("class-block");
-        block.css("margin-top", top_margin);
-        block.css("margin-left", left_margin);
-        block.css("height", height);
-        block.css("width", "13%");
-        
-        block.css("background", colors[class_entry.i]);
-        block.hide().fadeIn(1000);
-        $("#schedule-container").append(block);
-    }
-    
-    render_scheule_table();
-    
-}
-
-
-function render_scheule_table(){
-    // add days
-    var weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-    for(var i = 0; i < 5; i++){
-        var day_name = weekdays[i];
-        var day = $('<div><p class = "weekday-text" >' + day_name + "</p></div>");
-        day.addClass("weekday-display");
-        var left_margin = (i / 5.0 * 100).toString() + "%";
-        var top_margin = "0%";
-        day.css("margin-top", top_margin);
-        day.css("margin-left", left_margin);
-        day.css("width", "13%");
-        day.hide().fadeIn(1000);
-        $("#schedule-container").append(day);
-    }
-    // add time lines
-    for(var i = 8; i <= 22; i++){
-        var time_name = ""
-        if(i < 12){
-            time_name = i.toString() + "AM";
-        }else if(i == 12){
-            time_name = "12 PM";
-        }else{
-            time_name = (i - 12).toString() + " PM";
+        var marked_class = marked_classes[i];
+        var start_time = moment().startOf('isoweek').add(marked_class.day, "d").add(8, "h").add(marked_class.start * 30, "m");
+        var class_entry = {
+            "title" : marked_class.n,
+            "start" : start_time,
+            "allDay" : false,
+            "end" : moment().startOf('isoweek').add(marked_class.day, "d").add(8, "h").add((marked_class.start+marked_class.duration) * 30 - 5, "m")
         }
-        
-        var time = $('<div><p class = "weekday-text" >' + time_name + "</p></div>");
-        time.addClass("day-display");
-        var left_margin = "-20px";
-        var top_margin = ((i - 8)/ 14.0 * 100 + 3).toString() + "%";
-        time.css("margin-top", top_margin);
-        time.css("margin-left", left_margin);
-        time.css("width", "auto");
-        time.hide().fadeIn(1000);
-        $("#schedule-container").append(time);
+        class_events.push(class_entry);
     }
+    console.log(class_events);
+    
+    $('#calendar').fullCalendar( 'addEventSource', class_events);
+
+    
 }
+
 
 function copy_array(old_array){
     // this does shallow copy of an array
@@ -284,7 +243,20 @@ function handle_selection(selected_course){
 
 $(function(){    
     // download the search_items
-    search_list = [];
+    var search_list = [];
+    $('#calendar').fullCalendar({
+        weekends: false, // will hide Saturdays and Sundays
+        header: {left:"", right: ''},
+        defaultView : "agendaWeek",
+        columnFormat : "dddd",
+        defaultDate : moment().startOf('isoweek'), // just start from Monday
+        allDaySlot : false,
+        minTime: "8:00:00",
+        maxTime : "22:00:00",
+        displayEventTime : false
+    });
+    class_events = [];
+    $('#calendar').fullCalendar( 'addEventSource', class_events);
     
     $.getJSON("data/bucknell/search.json", function(search_items){
         setup_typeahead(search_items);
