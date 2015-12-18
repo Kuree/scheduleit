@@ -1,8 +1,7 @@
-String.prototype.endsWith = function(str)
-{
-    var lastIndex = this.lastIndexOf(str);
-    return (lastIndex !== -1) && (lastIndex + str.length === this.length);
-}
+// global variables here
+class_events = [];
+current_class_index = 0;
+schedule_result = [];
 
 function guidGenerator() {
     var S4 = function() {
@@ -43,8 +42,20 @@ function schedule(selected_course, courses, search_items){
         available_classes.push(class_entry);
     });
     select_course(current_classes, available_classes, result);
-    console.log(result);
-    render_schedule(result[0]);
+    schedule_result = result;
+    
+    // TODO:
+    // fix no result found
+    current_class_index = 0;
+    handle_schedule_render();
+}
+
+
+function handle_schedule_render(){
+    // check all the boundaries
+    $("#show-left").prop("disabled",current_class_index == 0);
+    $("#show-right").prop("disabled",current_class_index == schedule_result.length - 1);
+    render_schedule(schedule_result[current_class_index]);
 }
 
 function render_schedule(classes){
@@ -255,7 +266,6 @@ $(function(){
         maxTime : "22:00:00",
         displayEventTime : false
     });
-    class_events = [];
     $('#calendar').fullCalendar( 'addEventSource', class_events);
     
     $.getJSON("data/bucknell/search.json", function(search_items){
@@ -280,6 +290,16 @@ $(function(){
             schedule(selected_course, data, search_list);
         });
         
+    });
+    
+    $("#show-left").click(function(){
+        current_class_index--;
+        handle_schedule_render();
+    });
+    
+    $("#show-right").click(function(){
+        current_class_index++;
+        handle_schedule_render();
     });
     
 
