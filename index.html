@@ -10,12 +10,12 @@
     <link rel="stylesheet" href="css/fullcalendar.timekit.min.css" type="text/css" />
     <link rel="stylesheet" href="css/app.css" type="text/css" />
     <script src="js/jquery-2.1.4.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
     <script src="js/typeahead.bundle.min.js"></script>
     <script src="js/Please.min.js"></script>
     <script src="js/moment.min.js"></script>
     <script src="js/fullcalendar.min.js"></script>
     <script src="js/vue.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
     <script src="js/app.js"></script>
     
 </head>
@@ -34,8 +34,10 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-8 col-md-offset-2" id="course-selection">
-            
+            <div class="col-md-8 col-md-offset-2" id = "course-selection">
+                
+                <span class="tag label label-info" v-for="entry in selected_course">
+                <span> {{ entry.n }} </span><a v-show="entry.has_close" class="remove glyphicon glyphicon-remove-sign glyphicon-white" ></a></span>
             </div>
         </div>
         <div class="row" id="schedule-row">

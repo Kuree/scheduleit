@@ -308,26 +308,17 @@ function create_description(e, search_items){
 
 function handle_selection(selected_course){
     $('#search .typeahead').bind('typeahead:select', function(ev, suggestion) {
-        // use handlebar to compile
-        var random_id = guidGenerator();
-        var html_main = '<span class="tag label label-info" ref="' + random_id + '">\
-<span>' + suggestion.n + '</span>\
-<a class="remove glyphicon glyphicon-remove-sign glyphicon-white"></a> \
-</span>';
-        $('#course-selection').append(html_main);
-        
+        suggestion.has_close = true;
+        v_input.selected_course.push(suggestion);
         // handle linked courses
         if(suggestion.l && Object.keys(suggestion.l).length > 0){
             $.each(suggestion.l, function(key, value){
-                var tooltip = suggestion.n + " requires " + key;
-                var link_html = '<span class="tag label label-info" data-toggle="tooltip" data-placement="bottom" title="' + tooltip + '" ref="' + random_id + '">' + key + '</span>'
-                $('#course-selection').append(link_html);
-                $('[data-toggle="tooltip"]').tooltip()
+                selected_course.push({n : key, has_close : false, tag : suggestion.n});
             });
         }
         
         // add it to the selected courses
-        selected_course[random_id] = suggestion.crn;
+        // v_schedule.selected_course.push(suggestion.crn);
         
         // clear the search input
         $('.typeahead').typeahead('val', '');
@@ -336,8 +327,22 @@ function handle_selection(selected_course){
 
 
 $(function(){    
-    // download the search_items
-    var search_list = [];
+    // initialize the vue js instance
+    var input_data = {search_list : [], selected_course : []};
+    v_input = new Vue({
+        el: '#course-selection',
+        data: input_data
+    })
+    
+    var schedule_data = {class_events : [], current_class_index : 0, schedule_result : []}
+    
+    v_schedule = new Vue({
+        el: "#schedule-row",
+        data: schedule_data
+    });
+
+    
+    // set up the calendar
     $('#calendar').fullCalendar({
         weekends: false, // will hide Saturdays and Sundays
         header: {left:"", right: ''},
@@ -349,16 +354,16 @@ $(function(){
         maxTime : "22:00:00",
         displayEventTime : false
     });
-    $('#calendar').fullCalendar( 'addEventSource', class_events);
+    $('#calendar').fullCalendar( 'addEventSource', schedule_data.class_events);
     
+    // download the search_items
     $.getJSON("data/bucknell/search.json", function(search_items){
         setup_typeahead(search_items);
-        search_list = search_items;
+        input_data.search_list = search_items;
     });
     
-    $.getJSON( "data/bucknell/courses.json", function(data){
-        var selected_course = {};        
-        handle_selection(selected_course);
+    $.getJSON( "data/bucknell/courses.json", function(json_data){
+        handle_selection(input_data.selected_course);
         
         $(document).on("click", ".remove", function(e){
             var parent = $(e.target).parent();
@@ -366,11 +371,11 @@ $(function(){
             // remove the html element
             $( "[ref=" + ref + "]" ).remove();
             // remove it from the selected courses
-            delete selected_course[ref];
+            delete input_data.selected_course[ref];
         });
         
         $('#search-button').click(function(){
-            schedule(selected_course, data, search_list);
+            schedule(input_data.selected_course, json_data, input_data.search_list);
         });
         
     });
