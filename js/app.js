@@ -16,6 +16,68 @@ function get_class_entry_from_crn(search_items, crn){
     });
 }
 
+function count_one(x){
+    x = (x & (0x55555555)) + ((x >> 1) & (0x55555555));
+    x = (x & (0x33333333)) + ((x >> 2) & (0x33333333));
+    x = (x & (0x0f0f0f0f)) + ((x >> 4) & (0x0f0f0f0f));
+    x = (x & (0x00ff00ff)) + ((x >> 8) & (0x00ff00ff));
+    x = (x & (0x0000ffff)) + ((x >> 16) & (0x0000ffff));
+    return x;
+}
+
+function compare_score(a,b) {
+  if (a.score < b.score)
+    return 1;
+  if (a.score > b.score)
+    return -1;
+  return 0;
+}
+
+function score_schedule(schedule){
+    // this checks the morning and evening classes
+    
+    // flatten the time table
+    times = [0, 0, 0, 0, 0]
+    for(var i = 0; i < schedule.length; i++){
+        var single_class = schedule[i];
+        for(var j = 0; j < single_class.t.length; j++){
+            times[i] |= single_class.t[j];
+        }
+    }
+    
+    var negative_score_mask = 0xC0000FFF;
+    var negative_score_1 = 0;
+    for(var i = 0; i < times.length; i++){
+        negative_score_1 += count_one(times[i] & negative_score_mask);
+    }
+    
+    // counting for dis-continuity
+    var negative_score_2 = 0;
+    var negative_score_2_mask_1 = 5; //(101) check if there is a half hour gap between two classes
+    var negative_score_2_mask_2 = 9; // (1001) check if there is an one hour gap between two classes
+    for(var i = 0; i < times.length; i++){
+        var time = times[i];
+        for(var j = 0; j < 32 - 3; j++){
+            if((time & (negative_score_2_mask_1 << j)) == time && time != 0){
+                negative_score_2++;
+            }
+        }
+        for(var j = 0; j < 32 - 5; j++){
+            if((time & (negative_score_2_mask_2 << j)) == time && time != 0){
+                negative_score_2++;
+            }
+        }
+
+    }
+    
+    var total_negative = negative_score_1 * 10 + negative_score_2 * 5;
+    if(total_negative > 100){
+        return 0;
+    }else{
+        return 100 - total_negative;
+    }
+}
+
 function schedule(selected_course, courses, search_items){
     // create a two dimensional array
     var classes = []
@@ -42,6 +104,12 @@ function schedule(selected_course, courses, search_items){
         available_classes.push(class_entry);
     });
     select_course(current_classes, available_classes, result);
+    
+    for(var i = 0; i < result.length; i++){
+        var entry = result[i];
+        entry.score = score_schedule(entry);
+    }
+    result.sort(compare_score);
     schedule_result = result;
     
     // TODO:
@@ -56,6 +124,21 @@ function handle_schedule_render(){
     $("#show-left").prop("disabled",current_class_index == 0);
     $("#show-right").prop("disabled",current_class_index == schedule_result.length - 1);
     render_schedule(schedule_result[current_class_index]);
+    render_star(schedule_result[current_class_index].score);
+}
+
+function render_star(score){
+    var html = ""
+    for(var i = 0; i < 100; i += 20){
+        if(score > i){
+            html += '<i class="glyphicon glyphicon-star"></i>';
+        }else{
+            html += '<i class="glyphicon glyphicon-star-empty"></i>';
+        }
+    }
+    
+    $("#rating-star").empty().append(html);
+    
 }
 
 function render_schedule(classes){
