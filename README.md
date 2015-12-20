@@ -14,3 +14,9 @@ Any static website host will do. Please notice that in the ```master``` branch, 
 4. ``` static-server -p 8888 -i index.html``` will host the website at 8888 port
 
 Alternatively, you can checkout ```gh-pages``` branch, which has all the data files.
+
+## Credits
+Ninja icon by [Carlo Eduardo Rodríguez Espino](https://www.iconfinder.com/CarloRodriguez)
+
+## License
+GPL V2
