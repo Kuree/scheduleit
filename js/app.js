@@ -285,7 +285,8 @@ function setup_typeahead(search_items){
               '</div>'
             ].join('\n'),
             suggestion: function(e) { return create_description(e, search_items)}
-        }
+        },
+        limit: 100
     });
 }
 
