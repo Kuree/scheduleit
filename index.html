@@ -2,6 +2,10 @@
 
 <html lang="en">
 <head>
+    <script>
+    if (window.location.protocol != "https:")
+    window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);
+    </script>
     <meta charset="utf-8" name="viewport" content="width=device-width">
     <title>ScheduleIt Ninja</title>
     <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
