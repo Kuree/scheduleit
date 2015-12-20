@@ -5,6 +5,8 @@ schedule_result = [];
 color_dict = {};
 course_description_table = {};
 
+
+
 function guidGenerator() {
     var S4 = function() {
        return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
@@ -114,31 +116,35 @@ function schedule(selected_course, courses, search_items){
     result.sort(compare_score);
     schedule_result = result;
     
-    // TODO:
-    // fix no result found
-    current_class_index = 0;
-    handle_schedule_render();
+    if(schedule_result.length == 0){
+        $("#schedule-row").hide("slow");
+        $(".footer").show("slow");
+        BootstrapDialog.alert({
+            type: BootstrapDialog.TYPE_WARNING,
+            title: "I'm sorry",
+            message: 'There is no available schedule that fits your course selection. Maybe try a different one?',
+        }); 
+    }
+    else{
+        current_class_index = 0;
+        handle_schedule_render();
+    }
 }
 
 
 function handle_schedule_render(){
-    // check if there is any results
-    if(schedule_result.length == 0){
-        $("#schedule-row").hide("slow");
-        // need to notify the user that no schedule available
-    }else{
-        $("#schedule-row").fadeIn(1000, function() 
-        { 
-            $('#calendar').fullCalendar('render');
-    
-            // check all the boundaries
-            $("#show-left").prop("disabled",current_class_index == 0);
-            $("#show-right").prop("disabled",current_class_index == schedule_result.length - 1);
-            render_schedule(schedule_result[current_class_index]);
-            render_star(schedule_result[current_class_index].score);
-            $("#paging").text((current_class_index + 1).toString() + " / " + schedule_result.length.toString());
-        });
-    }   
+    $(".footer").fadeOut(500);
+    $("#schedule-row").fadeIn(1000, function() 
+    { 
+        $('#calendar').fullCalendar('render');
+        // check all the boundaries
+        $("#show-left").prop("disabled",current_class_index == 0);
+        $("#show-right").prop("disabled",current_class_index == schedule_result.length - 1);
+        render_schedule(schedule_result[current_class_index]);
+        render_star(schedule_result[current_class_index].score);
+        $("#paging").text((current_class_index + 1).toString() + " / " + schedule_result.length.toString());
+        
+    });
 }
 
 function render_star(score){
@@ -316,7 +322,7 @@ function handle_selection(selected_course){
         var random_id = guidGenerator();
         var html_main = '<span class="tag label label-info" ref="' + random_id + '">\
 <span>' + suggestion.n + '</span>\
-<a class="remove glyphicon glyphicon-remove-sign glyphicon-white"></a> \
+<a class="remove fa fa-times"></a> \
 </span>';
         $('#course-selection').append(html_main);
         
@@ -412,7 +418,7 @@ $(function(){
         });
     
     $.getJSON( "data/bucknell/courses.json", function(data){
-        var selected_course = {};        
+        selected_course = {};        
         handle_selection(selected_course);
         
         course_description_table = data;
@@ -441,6 +447,11 @@ $(function(){
     $("#show-right").click(function(){
         current_class_index++;
         handle_schedule_render();
+    });
+    
+    
+    $().click(function(){
+        
     });
     
 
