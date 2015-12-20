@@ -15,7 +15,6 @@
     <script src="js/Please.min.js"></script>
     <script src="js/moment.min.js"></script>
     <script src="js/fullcalendar.min.js"></script>
-    <script src="js/vue.min.js"></script>
     <script src="js/app.js"></script>
     
 </head>
@@ -23,6 +22,7 @@
     <div class="container">
         <div class="row" id="search-row">
             <div class="col-md-8 col-md-offset-2" id="search-container">
+                <span class="site-logo"><span class="logo-color1">S</span><span class="logo-color1">c</span><span class="logo-color1">h</span><span class="logo-color1">e</span><span class="logo-color1">d</span><span class="logo-color1">u</span><span class="logo-color1">l</span><span class="logo-color1">e</span><span class="logo-color2">I</span><span class="logo-color2">t</span></span>
                 <div id="search-input">
                     <div class="input-group col-md-12" id="search">
                         <input type="text" class="form-control input-lg typeahead" id="search-box" autocomplete="off" placeholder="Please enter course number or CRN" />
@@ -40,9 +40,17 @@
         </div>
         <div class="row" id="schedule-row">
             <div class="col-md-8 col-md-offset-2">
-                <span id="rating-star"></span>
-                <div class="btn-group" role="group" aria-label="...">
+            <hr>
+                <span class="star-rating">
+                  <input readonly="readonly" type="radio" name="rating" value="1"><i id="star-1"></i>
+                  <input readonly="readonly" type="radio" name="rating" value="2"><i id="star-2"></i>
+                  <input readonly="readonly" type="radio" name="rating" value="3"><i id="star-3"></i>
+                  <input readonly="readonly" type="radio" name="rating" value="4"><i id="star-4"></i>
+                  <input readonly="readonly" type="radio" name="rating" value="5"><i id="star-5"></i>
+                </span>
+                <div class="btn-group pull-right" role="group" aria-label="...">
                     <button type="button" class="btn btn-default"  id="show-left"> <span class="glyphicon glyphicon-menu-left" aria-hidden="true"></span></button>
+                    <button type="button" class="btn btn-default" id="paging">Loading</button>
                     <button type="button" class="btn btn-default" id="show-right"> <span class="glyphicon glyphicon-menu-right" aria-hidden="true" ></span></button>
 
                     <div class="btn-group" role="group">

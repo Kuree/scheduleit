@@ -2,6 +2,7 @@
 class_events = [];
 current_class_index = 0;
 schedule_result = [];
+color_dict = {};
 
 function guidGenerator() {
     var S4 = function() {
@@ -120,24 +121,31 @@ function schedule(selected_course, courses, search_items){
 
 
 function handle_schedule_render(){
-    // check all the boundaries
-    $("#show-left").prop("disabled",current_class_index == 0);
-    $("#show-right").prop("disabled",current_class_index == schedule_result.length - 1);
-    render_schedule(schedule_result[current_class_index]);
-    render_star(schedule_result[current_class_index].score);
+    // check if there is any results
+    if(schedule_result.length == 0){
+        $("#schedule-row").hide("slow");
+        // need to notify the user that no schedule available
+    }else{
+        $("#schedule-row").fadeIn(1000, function() 
+        { 
+            $('#calendar').fullCalendar('render');
+    
+            // check all the boundaries
+            $("#show-left").prop("disabled",current_class_index == 0);
+            $("#show-right").prop("disabled",current_class_index == schedule_result.length - 1);
+            render_schedule(schedule_result[current_class_index]);
+            render_star(schedule_result[current_class_index].score);
+            $("#paging").text((current_class_index + 1).toString() + " / " + schedule_result.length.toString());
+        });
+    }   
 }
 
 function render_star(score){
-    var html = ""
-    for(var i = 0; i < 100; i += 20){
-        if(score > i){
-            html += '<i class="glyphicon glyphicon-star"></i>';
-        }else{
-            html += '<i class="glyphicon glyphicon-star-empty"></i>';
-        }
+    var id = 1
+    for(var i = 0; i < score; i+= 20){
+        $("#star-" + id.toString()).css({ opacity: 1 }); 
+        $("#star-" + id.toString()).css({ width: score.toString() + "%" }); 
     }
-    
-    $("#rating-star").empty().append(html);
     
 }
 
@@ -178,11 +186,6 @@ function render_schedule(classes){
         }
     }
     
-    var colors = Please.make_color({
-        colors_returned: classes.length,
-        format: ("rgb-string"),
-        
-    });
     
     class_events.length = 0;
     
@@ -274,7 +277,6 @@ function setup_typeahead(search_items){
     {
         name: 'bucknell-courses',
         source: courses.ttAdapter(),
-        limit: 5,
         displayKey: "n",
         templates: {
             empty: [
@@ -342,12 +344,20 @@ $(function(){
         weekends: false, // will hide Saturdays and Sundays
         header: {left:"", right: ''},
         defaultView : "agendaWeek",
-        columnFormat : "dddd",
+        columnFormat : "ddd",
         defaultDate : moment().startOf('isoweek'), // just start from Monday
         allDaySlot : false,
         minTime: "8:00:00",
         maxTime : "22:00:00",
-        displayEventTime : false
+        displayEventTime : false,
+        windowResize: function(view) {
+                        if ($(window).width() < 580){
+                            $('#calendar').fullCalendar( 'changeView', 'basicWeek' );
+                            
+                        } else {
+                            $('#calendar').fullCalendar( 'changeView', 'agendaWeek' );
+                        }
+                    }
     });
     $('#calendar').fullCalendar( 'addEventSource', class_events);
     
