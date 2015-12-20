@@ -8,9 +8,17 @@ Currently only the website only contains Bucknell University's course informatio
 
 ## How to run
 Any static website host will do. Please notice that in the ```master``` branch, there is no data file for all the classes. Suppose we are using the ```static-sever``` from npm, the following command will help you host it locally:
+
 1. ```$ cd script```
 2. ```$ python bucknell.py``` for each schools
 3. ``` cd ..```
 4. ``` static-server -p 8888 -i index.html``` will host the website at 8888 port
 
 Alternatively, you can checkout ```gh-pages``` branch, which has all the data files.
+
+
+## Credits
+Ninja icon by [Carlo Eduardo Rodríguez Espino](https://www.iconfinder.com/CarloRodriguez)
+
+## License
+GPL V2
