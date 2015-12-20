@@ -127,7 +127,7 @@ http://www.colourlovers.com/palette/580974/Adrift_in_Dreams
 
 .site-logo {
     font-family: Catull,Sans-Serif;
-    font-size: 10vw;
+    font-size: 7.5vw;
     display:table;
     margin:0 auto;
 }
@@ -145,4 +145,11 @@ http://www.colourlovers.com/palette/580974/Adrift_in_Dreams
 
 #calendar{
     width: 100%;
+}
+
+#ninja-logo{
+    display: inline-block;
+    width : 7.5vw;
+    height :7.5vw;
+    margin-bottom : -1vw
 }
