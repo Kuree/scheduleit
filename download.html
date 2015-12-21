@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="utf-8" name="viewport" content="width=device-width">
+    <title>ScheduleIt Ninja</title>
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script async src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="js/FileSaver.min.js"></script>
+    <script type="text/javascript" src="js/jspdf.min.js"></script>
+    <script type="text/javascript" src="js/jspdf.plugin.autotable.js"></script>
+    <script type="text/javascript" src="js/html2canvas.min.js"></script>
+    <script type="text/javascript" src="js/tableExport.min.js"></script>
+    <script async>
+    function getJsonFromUrl(hashBased) {
+      var query;
+      if(hashBased) {
+        var pos = location.href.indexOf("?");
+        if(pos==-1) return [];
+        query = location.href.substr(pos+1);
+      } else {
+        query = location.search.substr(1);
+      }
+      var result = {};
+      query.split("&").forEach(function(part) {
+        if(!part) return;
+        part = part.replace("+"," ");
+        var eq = part.indexOf("=");
+        var key = eq>-1 ? part.substr(0,eq) : part;
+        var val = eq>-1 ? decodeURIComponent(part.substr(eq+1)) : "";
+        var from = key.indexOf("[");
+        if(from==-1) result[decodeURIComponent(key)] = val;
+        else {
+          var to = key.indexOf("]");
+          var index = decodeURIComponent(key.substring(from+1,to));
+          key = decodeURIComponent(key.substring(0,from));
+          if(!result[key]) result[key] = [];
+          if(!index) result[key].push(val);
+          else result[key][index] = val;
+        }
+      });
+      return result;
+    }
+    $(function() {
+        var classes = getJsonFromUrl(null);
+        $.getJSON( "data/bucknell/courses.json", function(course_data){
+            // build a table there
+            for(var key in classes){
+                var crn = classes[key];
+                var name = course_data[crn].n;
+                var instructor = course_data[crn].i;
+                $("#course-table").append("<tr><td>" + crn + "</td><td>" + name + " </td><td>" + instructor + "</td></tr>");
+            }
+        });
+        
+        
+        $(".download").click(function(){
+            var id = this.id;
+            $('#course-table').tableExport({type:id, fileName:"course"});
+        });
+        
+    });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="row" id="result-row">
+            <div class="col-sm-8">
+                <table id="course-table" class="table">
+                <tr>
+                <th>CRN</th>
+                <th>Course Name</th>
+                <th>Instructor</th>
+                </tr>
+                </table>
+            </div>
+            <div class="col-sm-4" style="text-align:center;">
+                <div class="btn-group pull-right" role="group">
+                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Download as
+                        <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" class="download" id="pdf">PDF</a></li>
+                            <li><a href="#" class="download" id="excel">MS-Excel</a></li>
+                            <li><a href="#" class="download" id="word">MS-Word</a></li>
+                            <li><a href="#" class="download" id="png">PNG</a></li>
+                            <li><a href="#" class="download" id="xml">XML</a></li>
+                            <li><a href="#" class="download" id="txt">TXT</a></li>
+                        </ul>
+                    </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<link rel="stylesheet" href="css/bootstrap.min.css" type="text/css" />
+<link rel="stylesheet" href="css/font-awesome.min.css" type="text/css" />

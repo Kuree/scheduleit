@@ -147,6 +147,12 @@ http://www.colourlovers.com/palette/580974/Adrift_in_Dreams
     width: 100%;
 }
 
+@media (max-width: 500px) {
+    #schedule-container {
+        margin-top: 5vh;
+    }
+ }
+
 #ninja-logo{
     display: inline-block;
     width : 7.5vw;
@@ -167,3 +173,8 @@ a {
     color: inherit; 
     text-decoration: none !important;
 } 
+
+.download-modal-body{
+    height: 70vh;
+    width: auto;
+}
