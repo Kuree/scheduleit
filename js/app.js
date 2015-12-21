@@ -134,15 +134,17 @@ function schedule(selected_course, courses, search_items){
 
 function handle_schedule_render(){
     $(".footer").fadeOut(500);
-    $("#schedule-row").fadeIn(1000, function() 
+    // check all the boundaries
+    $("#show-left").prop("disabled",current_class_index == 0);
+    $("#show-right").prop("disabled",current_class_index == schedule_result.length - 1);
+    
+    render_star(schedule_result[current_class_index].score);
+    $("#paging").text((current_class_index + 1).toString() + " / " + schedule_result.length.toString());
+    
+    $("#schedule-row").fadeIn(500, function() 
     { 
         $('#calendar').fullCalendar('render');
-        // check all the boundaries
-        $("#show-left").prop("disabled",current_class_index == 0);
-        $("#show-right").prop("disabled",current_class_index == schedule_result.length - 1);
         render_schedule(schedule_result[current_class_index]);
-        render_star(schedule_result[current_class_index].score);
-        $("#paging").text((current_class_index + 1).toString() + " / " + schedule_result.length.toString());
         
     });
 }
@@ -383,7 +385,7 @@ $(function(){
         maxTime : "22:00:00",
         displayEventTime : false,
         windowResize: function(view) {
-                        if ($(window).width() < 580){
+                        if ($(window).width() < 300){
                             $('#calendar').fullCalendar( 'changeView', 'basicWeek' );
                             
                         } else {
@@ -449,9 +451,23 @@ $(function(){
         handle_schedule_render();
     });
     
+
     
-    $().click(function(){
+    $("#download").click(function(){
+        var classes = schedule_result[current_class_index];
+        url = "download.html?";
+        for(var i = 0; i < classes.length; i++){
+            var key = classes[i].crn;
+            url += key + "=" + key + "&"
+        }
         
+        url = url.substring(0, url.length - 1);
+        console.log(url);
+        $('#download-modal').on('show.bs.modal', function () {
+            $('#download-iframe').attr("src",url);
+             
+        });
+        $('#download-modal').modal('show');
     });
     
 

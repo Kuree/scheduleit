@@ -2,10 +2,10 @@
 
 <html lang="en">
 <head>
-    <script>
+<!--     <script>
     if (window.location.protocol != "https:")
     window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);
-    </script>
+    </script> -->
     <meta charset="utf-8" name="viewport" content="width=device-width">
     <title>ScheduleIt Ninja</title>
     <script src="js/jquery-2.1.4.min.js"></script>
@@ -58,17 +58,23 @@
                     <button type="button" class="btn btn-default"  id="show-left"> <i class="fa fa-chevron-left"></i></button>
                     <button type="button" class="btn btn-default" id="paging">Loading</button>
                     <button type="button" class="btn btn-default" id="show-right"> <i class="fa fa-chevron-right"></i></span></button>
-
-                    <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      Download as
-                        <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a href="#" id="download-excel">Excel</a></li>
-                            <li><a href="#" id="download-pdf">PDF</a></li>
-                            <li><a href="#" id="download-txt">Txt</a></li>
-                        </ul>
+                    <button type="button" class="btn btn-default" id="download">Download</button>
+                    <!-- Modal -->
+                    <div class="modal fade" id="download-modal" tabindex="-1" role="dialog" aria-labelledby="download-model-title">
+                      <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                          <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title" id="download-model-title">Download</h4>
+                          </div>
+                          <div class="modal-body download-modal-body">
+                            <iframe src id="download-iframe" style="zoom:0.60; height:95%" width="99.6%" frameborder="0"></iframe>
+                          </div>
+                          <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
             </div>
             </div>
