@@ -45,11 +45,11 @@ function score_schedule(schedule){
     for(var i = 0; i < schedule.length; i++){
         var single_class = schedule[i];
         for(var j = 0; j < single_class.t.length; j++){
-            times[i] |= single_class.t[j];
+            times[j] |= single_class.t[j];
         }
     }
     
-    var negative_score_mask = 0xC0000FFF;
+    var negative_score_mask = 0xFFF00003;
     var negative_score_1 = 0;
     for(var i = 0; i < times.length; i++){
         negative_score_1 += count_one(times[i] & negative_score_mask);
@@ -62,21 +62,23 @@ function score_schedule(schedule){
     for(var i = 0; i < times.length; i++){
         var time = times[i];
         for(var j = 0; j < 32 - 3; j++){
-            if((time & (negative_score_2_mask_1 << j)) == time && time != 0){
+            var mask = negative_score_2_mask_1 << j;
+            if((time & mask) == mask){
                 negative_score_2++;
             }
         }
         for(var j = 0; j < 32 - 5; j++){
-            if((time & (negative_score_2_mask_2 << j)) == time && time != 0){
+            var mask = negative_score_2_mask_2 << j;
+            if((time & mask) == mask){
                 negative_score_2++;
             }
         }
 
     }
     
-    var total_negative = negative_score_1 * 10 + negative_score_2 * 5;
+    var total_negative = negative_score_1 * 5 + negative_score_2 * 5;
     if(total_negative > 100){
-        return 0;
+        return 5;
     }else{
         return 100 - total_negative;
     }
@@ -141,12 +143,11 @@ function handle_schedule_render(){
     render_star(schedule_result[current_class_index].score);
     $("#paging").text((current_class_index + 1).toString() + " / " + schedule_result.length.toString());
     
-    $("#schedule-row").fadeIn(500, function() 
-    { 
-        $('#calendar').fullCalendar('render');
-        render_schedule(schedule_result[current_class_index]);
+    $("#schedule-row").fadeIn(1500);
+    $('#calendar').show('fade',{ queue:false},1500).fullCalendar('render');
+    render_schedule(schedule_result[current_class_index]);
         
-    });
+    
 }
 
 function render_star(score){
@@ -195,7 +196,6 @@ function render_schedule(classes){
         }
     }
     
-    
     class_events.length = 0;
     
     for(var i = 0; i < marked_classes.length; i++){
@@ -209,13 +209,9 @@ function render_schedule(classes){
         }
         class_events.push(class_entry);
     }
-    console.log(class_events);
     
     $('#calendar').fullCalendar( 'addEventSource', class_events);
-
-    
 }
-
 
 function copy_array(old_array){
     // this does shallow copy of an array
@@ -326,15 +322,16 @@ function handle_selection(selected_course){
 <span>' + suggestion.n + '</span>\
 <a class="remove fa fa-times"></a> \
 </span>';
-        $('#course-selection').append(html_main);
+
+        $(html_main).appendTo($('#course-selection')).hide().fadeIn(600);
         
         // handle linked courses
         if(suggestion.l && Object.keys(suggestion.l).length > 0){
             $.each(suggestion.l, function(key, value){
                 var tooltip = suggestion.n + " requires " + key;
-                var link_html = '<span class="tag label label-info" data-toggle="tooltip" data-placement="bottom" title="' + tooltip + '" ref="' + random_id + '">' + key + '</span>'
-                $('#course-selection').append(link_html);
-                $('[data-toggle="tooltip"]').tooltip()
+                var link_html = '<span class="tag label label-info" data-toggle="tooltip" data-placement="bottom" title="' + tooltip + '" ref="' + random_id + '">' + key + '</span>';
+                $(link_html).appendTo($('#course-selection')).hide().fadeIn(600);
+                $('[data-toggle="tooltip"]').tooltip();
             });
         }
         
@@ -414,7 +411,8 @@ $(function(){
             var parent = $(e.target).parent();
             var ref = parent.attr("ref");
             // remove the html element
-            $( "[ref=" + ref + "]" ).remove();
+            $( "[ref=" + ref + "]" ).hide().remove();
+            
             // remove it from the selected courses
             delete selected_course[ref];
         });
