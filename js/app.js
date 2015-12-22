@@ -147,7 +147,6 @@ function handle_schedule_render(){
     $('#calendar').show('fade',{ queue:false},1500).fullCalendar('render');
     render_schedule(schedule_result[current_class_index]);
         
-    
 }
 
 function render_star(score){
@@ -156,7 +155,6 @@ function render_star(score){
         $("#star-" + id.toString()).css({ opacity: 1 }); 
         $("#star-" + id.toString()).css({ width: score.toString() + "%" }); 
     }
-    
 }
 
 function render_schedule(classes){
@@ -468,7 +466,7 @@ $(function(){
         $('#download-modal').modal('show');
     });
     
-
+    $('[data-toggle="tooltip"]').tooltip(); 
 });
 
 
