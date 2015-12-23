@@ -9,7 +9,7 @@
     <meta charset="utf-8" name="viewport" content="width=device-width">
     <title>ScheduleIt Ninja</title>
     <script src="js/jquery-2.1.4.min.js"></script>
-    <script async src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
     <script src="js/typeahead.bundle.min.js"></script>
     <script src="js/Please.min.js"></script>
     <script src="js/moment.min.js"></script>
@@ -19,6 +19,44 @@
     
 </head>
 <body>
+    <div class="pull-right">
+        <a><i style="margin-top: 2vh; margin-right:2vh; color:#7B7B7B" data-toggle="tooltip" data-placement="left" title="Course requirements lookup" class="fa fa-search fa-2x" id="toggle-tag-search"></i></a>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="tag-search-modal" tabindex="-1" role="dialog" aria-labelledby="tag-search">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content ">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="tag-search">Quick requirements lookup</h4>
+              </div>
+              <div class="modal-body" style="max-height: 420px;">
+                <div id="wrapper">
+                    <!-- Sidebar -->
+                    <div id="sidebar-wrapper">
+                        <ul class="sidebar-nav"  id="sidebar">
+                        </ul>
+                    </div>
+                    <!-- /#sidebar-wrapper -->
+
+                    <!-- Page Content -->
+                    <div id="page-content-wrapper">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div id="tag-content"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              </div>
+            </div>
+        </div>
+    </div>
     <div class="container">
         <div class="row" id="search-row">
             <div class="col-md-8 col-md-offset-2" id="search-container">
@@ -31,7 +69,7 @@
                     <div class="input-group col-md-12" id="search">
                         <input type="text" class="form-control input-lg typeahead" id="search-box" autocomplete="off" placeholder="Please enter course number or CRN" />
                         <span class="input-group-btn">
-                            <button class="btn btn-info btn-lg" type="button" id="search-button">
+                            <button class="btn btn-info btn-lg" type="button" data-toggle="tooltip" data-placement="right" title="Click here to schedule" id="search-button">
                                 <i class="fa fa-calendar"></i>
                             </button>
                         </span>
@@ -39,7 +77,6 @@
                 </div>
             </div>
             <div class="col-md-8 col-md-offset-2" id="course-selection">
-            
             </div>
         </div>
         <div class="row" id="schedule-row">
@@ -81,7 +118,6 @@
             </div>
         </div>
     </div>
-    <table style="display:none"></table>
     <div class="footer">
       <div class="container text-center">
         <p class="text-muted">Developed by <a href="https://keyizhang.com" data-toggle="tooltip" title="See the ninja behind the website">Keyi Zhang </a><a href="https://github.com/Kuree/scheduleit" data-toggle="tooltip" title="Get the source code"><i class="fa fa-github"></i></a><a href="https://paypal.me/keyi" data-toggle="tooltip" title="Buy me a coffee"> <i class="fa fa-coffee"></i></a></p>

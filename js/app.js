@@ -270,7 +270,8 @@ function is_new_class_conflicted(classes, new_class){
     return false;
 }
 
-function setup_typeahead(search_items){
+function setup_typeahead(search_items, tag_items){
+    
     var courses = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('n'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
@@ -280,7 +281,7 @@ function setup_typeahead(search_items){
     {
         name: 'bucknell-courses',
         source: courses.ttAdapter(),
-        displayKey: "n",
+        displayKey: function(e) { if(e.nn){return "nn";} else{ return "n";}},
         templates: {
             empty: [
               '<div class="empty-message">',
@@ -293,12 +294,16 @@ function setup_typeahead(search_items){
     });
 }
 
+
+
 function create_description(e, search_items){
     if(e.d){
         return '<div><strong>' + e.n + ': ' + e.ti +  '</strong> <br> ' + e.d + '</div>';
     }
     else{
         // need to pull it out from search
+        if(e.nn){
+        }
         var entries = get_class_entry_from_crn(search_items, e.n);
         var entry;
         for(var i = 0; i < entries.length; i++){
@@ -365,6 +370,21 @@ function generate_course_desp(course_name){
                 "<p><b>CRN: </b>" + crn + "</p>";
 }
 
+function create_tag_desc(desc_table, tags, ccc){
+    var list = tags[ccc];
+    var result = "";
+    for(var i = 0; i < list.length; i++){
+        var entry = list[i];
+        for(var j = 0; j < desc_table.length; j++){
+            var class_entry = desc_table[j];
+            if(class_entry.n === entry){
+                result += '<p><b>' + entry + ' </b>' + class_entry.ti + ": " + class_entry.d.split(".")[0] + '.</p>';
+            }
+        }
+    }
+    return result;
+}
+
 
 $(function(){    
     // download the search_items
@@ -399,11 +419,7 @@ $(function(){
             }
     });
     $('#calendar').fullCalendar( 'addEventSource', class_events);
-    
-    $.getJSON("data/bucknell/search.json", function(search_items){
-        setup_typeahead(search_items);
-        search_list = search_items;
-    });
+
     
     $(document).on("click", ".remove", function(e){
             var parent = $(e.target).parent();
@@ -414,6 +430,34 @@ $(function(){
             // remove it from the selected courses
             delete selected_course[ref];
         });
+    
+    $.getJSON("data/bucknell/search.json", function(search_items){
+        $('#tag-search-modal').on('show.bs.modal', function (e) {
+        // first time
+        var isEmpty = $("#tag-content").html() === "";
+        if(isEmpty) {
+            $.getJSON("data/bucknell/tag.json", function(tags){
+                for(var ccc in tags){
+                    $("#sidebar").append('<li><a ref=tag-search>' + ccc + '</a></li>');
+
+                }
+                $("[ref=tag-search]").click(function(e){
+                    var tag = $(e.target).text();
+                    var p = create_tag_desc(search_items, tags, tag);
+                    $("#tag-content").empty();
+                    $(p).appendTo($('#tag-content')).hide().show(500);
+                });
+                var p = create_tag_desc(search_items, tags, ccc);
+                $("#tag-content").empty();
+                $(p).appendTo($('#tag-content')).hide().show(500);
+                
+            });
+        }
+    })
+        
+        setup_typeahead(search_items);
+        search_list = search_items;        
+    });
     
     $.getJSON( "data/bucknell/courses.json", function(data){
         selected_course = {};        
@@ -465,6 +509,12 @@ $(function(){
         });
         $('#download-modal').modal('show');
     });
+    
+    $("#toggle-tag-search").click(function(){
+        $("#tag-search-modal").modal('toggle');
+    });
+    
+
     
     $('[data-toggle="tooltip"]').tooltip(); 
 });
