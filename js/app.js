@@ -392,22 +392,33 @@ function create_tour(){
       {
         element: "#toggle-tag-search",
         title: "Quick requirement lookup",
-        content: "Click here to look up all the requirement-related courses"
+        content: "Click here to look up all the requirement-related courses",
+        placement: "left"
       },
       {
         element: "#search-box",
         title: "Search courses",
-        content: "Type the course name or CRN here to add your class to the search list"
+        content: "Type the course name or CRN here to add your class to the search list",
+        placement: "bottom"
+      },
+      {
+        element: "#search-button",
+        title: "Schedule",
+        content: "Click here to let Ninja schedule your classes for you",
+        placement: "bottom"
       },
       {
         element: "#toggle-web-tour",
         title: "Web tour",
-        content: "Click here to toggle the web tour again."
+        content: "Click here to toggle the web tour again.",
+        placement: "left"
       }
       
     ]});
     
     tour.init();
+    
+    return tour;
 }
 
 $(function(){    
@@ -538,10 +549,10 @@ $(function(){
         $("#tag-search-modal").modal('toggle');
     });
     
-    //var tour = create_tour();
-    //$("#toggle-web-tour").click(function(){
-    //    tour.start();
-    //});
+    var tour = create_tour();
+    $("#toggle-web-tour").click(function(){
+        tour.start(true);
+    });
     
     $('[data-toggle="tooltip"]').tooltip(); 
 });
