@@ -385,6 +385,30 @@ function create_tag_desc(desc_table, tags, ccc){
     return result;
 }
 
+function create_tour(){
+    // Instance the tour
+    var tour = new Tour({
+      steps: [
+      {
+        element: "#toggle-tag-search",
+        title: "Quick requirement lookup",
+        content: "Click here to look up all the requirement-related courses"
+      },
+      {
+        element: "#search-box",
+        title: "Search courses",
+        content: "Type the course name or CRN here to add your class to the search list"
+      },
+      {
+        element: "#toggle-web-tour",
+        title: "Web tour",
+        content: "Click here to toggle the web tour again."
+      }
+      
+    ]});
+    
+    tour.init();
+}
 
 $(function(){    
     // download the search_items
@@ -514,7 +538,10 @@ $(function(){
         $("#tag-search-modal").modal('toggle');
     });
     
-
+    //var tour = create_tour();
+    //$("#toggle-web-tour").click(function(){
+    //    tour.start();
+    //});
     
     $('[data-toggle="tooltip"]').tooltip(); 
 });
