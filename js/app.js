@@ -4,6 +4,9 @@ current_class_index = 0;
 schedule_result = [];
 color_dict = {};
 course_description_table = {};
+course_search_table = [];
+id_to_crn_dict = {};
+linked_course_overriden = {};
 
 // proxy functions for current schedule index
 function set_current_class_index(i) {
@@ -106,9 +109,13 @@ function schedule(selected_course, courses, search_items) {
         // need to check if l exists
         var entries = get_class_entry_from_crn(search_items, entry[0]);
         if (entries.length > 0 && entries[0].l) {
-            $.each(entries[0].l, function(name, links) {
-                classes.push(links);
-            });
+            if(ref_key in linked_course_overriden){
+                classes.push(linked_course_overriden[ref_key]);
+            }else{
+                $.each(entries[0].l, function(name, links) {
+                    classes.push(links);
+                });
+            }
         }
     });
     var result = [];
@@ -304,11 +311,13 @@ function is_new_class_conflicted(classes, new_class) {
 }
 
 function setup_typeahead(search_items, tag_items) {
-
+    var filted_list = $.grep(search_items, function(entry) { 
+    return entry.is_l !== true;
+    });
     var courses = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('n'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
-        local: search_items
+        local: filted_list,
     });
     $('#search .typeahead').typeahead(null, {
         name: 'bucknell-courses',
@@ -341,7 +350,7 @@ function create_description(e, search_items) {
         return '<div><strong>' + e.n + ': ' + e.ti + '</strong> <br> ' + e.d + '</div>';
     } else {
         // need to pull it out from search
-        if (e.nn) {}
+        // if (e.nn) {}
         var entries = get_class_entry_from_crn(search_items, e.n);
         var entry;
         for (var i = 0; i < entries.length; i++) {
@@ -350,7 +359,7 @@ function create_description(e, search_items) {
                 break;
             }
         }
-        return '<div><strong>' + e.n + ': ' + entry.ti + '</strong> <br> ' + entry.d + '</div>';
+        return '<div><strong>' + e.n + ': ' + e.nn + '</strong> <br> ' + entry.d + '</div>';
     }
 }
 
@@ -370,31 +379,101 @@ function handle_color_creation(crn_list) {
     return color;
 }
 
+function create_label_dropdown(crn_list, id, default_value, is_linked){
+    // do a linear search
+    // doing as best as I can
+    count = 0;
+    result = "";
+    var temp_list = {};
+    for(var i = 0; i < course_search_table.length && count < crn_list.length; i++){
+        var entry = course_search_table[i];
+        if(crn_list.indexOf(entry.n) >= 0){
+            temp_list[entry.n] = entry.nn;
+            count++;
+        }
+    }
+    result += '<li ref="' + id + '" data-linked="' + (is_linked? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + default_value.replace(" ", "_") + '"><strong>'  + default_value + '</strong></a></li>';
+    for(var key in temp_list){
+        var name = temp_list[key];
+        result += '<li ref="' + id + '"data-linked="' + (is_linked? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + key + '"><strong>' + name + '</strong></a></li>';
+    }
+    return result;
+}
+
+// function returns a dictionary {id:html}
+function create_label_for_class(random_id_main, suggestion){
+    var result = {};
+    // add colors
+    var color = handle_color_creation(suggestion.crn);
+    if(!(random_id_main in id_to_crn_dict)) { id_to_crn_dict[random_id_main] = suggestion.crn;}
+    var html_main = '<div class="dropdown" style="display:inline" ref="' + random_id_main +'"><span class="tag label label-info dropdown-toggle" data-toggle="dropdown" id="' + random_id_main + '" style="background-color:' + color + '">' + (suggestion.nn? suggestion.nn: suggestion.n) + '<a class="remove fa fa-times"></a></span><ul class="dropdown-menu" style="background-color:' + color + ';"id="drop-' + random_id_main +'">';
+        
+    html_main += create_label_dropdown(suggestion.crn, random_id_main, (suggestion.nn? suggestion.nn: suggestion.n), false);
+    
+    html_main +="</ul></div>";
+    result[random_id_main] = html_main;
+    if (suggestion.l && Object.keys(suggestion.l).length > 0) {
+        $.each(suggestion.l, function(key, value) {
+            var l_color = handle_color_creation(value);
+            var tooltip = suggestion.n + " requires " + key;
+            var link_random_id = guidGenerator();
+            if(!(link_random_id in id_to_crn_dict)) { id_to_crn_dict[link_random_id] = value;}
+            var link_html = '<div class="dropdown" style="display:inline"' + '" ref="' + random_id_main +'"><span style="background-color:' + l_color + '" class="tag label label-info dropdown-toggle" data-toggle="dropdown" data-placement="bottom" title="' + tooltip +  '" id="' + link_random_id +'">' + key + '</span><ul class="dropdown-menu" style="background-color:' + l_color + ';"id="drop-' + link_random_id +'">';
+            link_html += create_label_dropdown(value, link_random_id, key, true);
+            link_html +="</ul></div>";
+            result[link_random_id] = link_html;
+            $('body').tooltip({
+                selector: "#" + link_random_id,
+                container: 'body'
+            });
+        });
+    }
+    return result;
+}
 
 function handle_selection(selected_course) {
     $('#search .typeahead').bind('typeahead:select', function(ev, suggestion) {
-        // add colors
-        var color = handle_color_creation(suggestion.crn);
-
         var random_id = guidGenerator();
-        var html_main = '<span class="tag label label-info" ref="' + random_id + '" style="background-color:' + color + '">\
-<span>' + suggestion.n + '</span>\
-<a class="remove fa fa-times"></a> \
-</span>';
-
-        $(html_main).appendTo($('#course-selection')).hide().fadeIn(600);
-
-        // handle linked courses
-        if (suggestion.l && Object.keys(suggestion.l).length > 0) {
-            $.each(suggestion.l, function(key, value) {
-                var l_color = handle_color_creation(value);
-                var tooltip = suggestion.n + " requires " + key;
-                var link_html = '<span style="background-color:' + l_color + '" class="tag label label-info" data-toggle="tooltip" data-placement="bottom" title="' + tooltip + '" ref="' + random_id + '">' + key + '</span>';
-                $(link_html).appendTo($('#course-selection')).hide().fadeIn(600);
-                $('[data-toggle="tooltip"]').tooltip();
-            });
+        var result = create_label_for_class(random_id, suggestion);
+        for(var key in result){
+            var html = result[key];
+            $(html).appendTo($('#course-selection')).hide().fadeIn(600);
+            
+            // toggle the drop down
+            $("#key").dropdown();
         }
-
+        // add event listener
+        $(document).on("click", "[ref=session_switch]", function(e) {
+            var text = $(e.target).text();
+            var a = $(e.target).parent();
+            var li = a.parent();
+            var is_linked = li.attr("data-linked") === "yes";
+            var crn = a.attr("id");
+            if(isNaN(crn)){
+                // original course number
+                if(is_linked){
+                    delete linked_course_overriden[random_id];
+                }
+                else{
+                    selected_course[random_id] = suggestion.crn;
+                }
+            }else{
+                if(is_linked){
+                    // add to overridden linked list 
+                    linked_course_overriden[random_id] = [crn];
+                }
+                else{
+                    selected_course[random_id] = [crn];
+                }
+            }
+            
+            // change the label text
+            var id = li.attr("ref");
+            $("#" + id).text(text).fadeIn(200);
+            
+            
+        });
+        
         // add it to the selected courses
         selected_course[random_id] = suggestion.crn;
 
@@ -404,7 +483,7 @@ function handle_selection(selected_course) {
 }
 
 function generate_course_desp(course_name) {
-    var entry;
+    var entry, entry2;
     var crn;
     if (isNaN(course_name)) {
         // actual course name
@@ -416,14 +495,22 @@ function generate_course_desp(course_name) {
                 break;
             }
         }
+        
+        // grab the title and description
+        for (var key in course_search_table) {
+            entry2 = course_search_table[key];
+            if (entry2.crn.indexOf(crn) >= 0) {
+                break;
+            }
+        }
 
     } else {
         entry = course_description_table[course_name];
         crn = course_name;
 
     }
-    return "<p><b>Instructor: </b>" + entry.i + "</p>" +
-        "<p><b>Location: </b>" + (entry.r == "" ? "TBA" : entry.r) + "</p>" +
+    return "<p><b>Title: </b>" + entry2.ti + "</p>" + "<p><b>Instructor: </b>" + entry.i + "</p>" +
+        "<p><b>Description: </b>" + entry2.d + "</p>" + "<p><b>Location: </b>" + (entry.r == "" ? "TBA" : entry.r) + "</p>" +
         "<p><b>CRN: </b>" + crn + "</p>";
 }
 
@@ -519,7 +606,7 @@ $(function() {
 
     $(document).on("click", ".remove", function(e) {
         var parent = $(e.target).parent();
-        var ref = parent.attr("ref");
+        var ref = parent.attr("id");
         // remove the html element
         $("[ref=" + ref + "]").hide().remove();
 
@@ -528,6 +615,7 @@ $(function() {
     });
 
     $.getJSON("data/bucknell/search.json", function(search_items) {
+        course_search_table = search_items;
         $('#tag-search-modal').on('show.bs.modal', function(e) {
             // first time
             var isEmpty = $("#tag-content").html() === "";

@@ -204,6 +204,19 @@ a {
   } 
 }
 
+.dropdown-menu{
+    min-width:auto;
+}
+
+.label-info{
+    cursor : pointer;
+}
+
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus {
+    background-color:rgba(0, 0, 0, 0.3);
+}
+
+/*scrollbar*/
 ::-webkit-scrollbar {
 	width: 7px;
 }

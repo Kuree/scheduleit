@@ -124,11 +124,14 @@ def process_course_table(course_table):
         # remove it from the JSON will reduce the size
         # It has two reasons. 1. using CRN to store description or title will cause duplication.
         # most people will use course name rather than CRN
+        # nn is the real name, including all the session name
         name = new_entry["n"]
         name_tokens =name.split()
         name = name_tokens[0] + " " + name_tokens[1]
+        is_linked_list = False
         if name[-1] == "R" or name[-1] == "L" or name[-1] == "P": 
-            continue
+            # need to add it to the course list
+            is_linked_list = True
             
         # handle tag search
         if course_entry["CCCReq"] and course_entry["CCCReq"] != "":
@@ -140,16 +143,19 @@ def process_course_table(course_table):
                     tag_search_result[ccc] = [name]
             
         if len(new_entry["l"]) > 0:
-            search_result.append({"n" : crn, "l" : new_entry["l"], "crn" : [crn]})
+            search_result.append({"n" : crn, "l" : new_entry["l"], "crn" : [crn], "nn" : new_entry["n"]})
         else:
-            search_result.append({"n" : crn, "crn" : [crn]})
+            search_result.append({"n" : crn, "crn" : [crn], "nn" : new_entry["n"]})
         existing_list = [x for x in search_result if x["n"] == name]
         
         if len(existing_list) == 0:
             if len(new_entry["l"]) > 0:
                 entry = {"n" : name, "d" : course_entry["desc"], "l" : new_entry["l"], "crn" : [crn], "ti" : title}
             else:
-                entry = {"n" : name, "d" : course_entry["desc"], "crn" : [crn], "ti" : title}
+                if is_linked_list:
+                    entry = {"n" : name, "crn" : [crn], "ti" : title, "is_l" : is_linked_list, "d" : course_entry["desc"]}
+                else:
+                    entry = {"n" : name, "d" : course_entry["desc"], "crn" : [crn], "ti" : title}
             search_result.append(entry)
         else:
             existing_list[0]["crn"].append(crn)
