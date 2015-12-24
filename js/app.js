@@ -203,7 +203,9 @@ function render_schedule(classes){
             "title" : marked_class.n,
             "start" : start_time,
             "allDay" : false,
-            "end" : moment().startOf('isoweek').add(marked_class.day, "d").add(8, "h").add((marked_class.start+marked_class.duration) * 30 - 5, "m")
+            "end" : moment().startOf('isoweek').add(marked_class.day, "d").add(8, "h").add((marked_class.start+marked_class.duration) * 30 - 5, "m"),
+            "crn" : marked_class.crn,
+            "borderColor" : color_dict[marked_class.crn]
         }
         class_events.push(class_entry);
     }
@@ -316,12 +318,29 @@ function create_description(e, search_items){
     }
 }
 
+function handle_color_creation(crn_list){
+    var first_crn = crn_list[0]
+        if(!(first_crn in color_dict)){
+            var color = Please.make_color({format: 'rgb-string'});
+            for(var i = 0; i < crn_list.length; i++){
+                var crn = crn_list[i];
+                color_dict[crn] = color;
+            }
+        }
+        else{
+            var color = color_dict[first_crn];
+        }
+    return color;
+}
+
 
 function handle_selection(selected_course){
     $('#search .typeahead').bind('typeahead:select', function(ev, suggestion) {
-        // use handlebar to compile
+        // add colors
+        var color = handle_color_creation(suggestion.crn);
+        
         var random_id = guidGenerator();
-        var html_main = '<span class="tag label label-info" ref="' + random_id + '">\
+        var html_main = '<span class="tag label label-info" ref="' + random_id + '" style="background-color:' + color + '">\
 <span>' + suggestion.n + '</span>\
 <a class="remove fa fa-times"></a> \
 </span>';
@@ -331,8 +350,9 @@ function handle_selection(selected_course){
         // handle linked courses
         if(suggestion.l && Object.keys(suggestion.l).length > 0){
             $.each(suggestion.l, function(key, value){
+                var l_color = handle_color_creation(value);
                 var tooltip = suggestion.n + " requires " + key;
-                var link_html = '<span class="tag label label-info" data-toggle="tooltip" data-placement="bottom" title="' + tooltip + '" ref="' + random_id + '">' + key + '</span>';
+                var link_html = '<span style="background-color:' + l_color + '" class="tag label label-info" data-toggle="tooltip" data-placement="bottom" title="' + tooltip + '" ref="' + random_id + '">' + key + '</span>';
                 $(link_html).appendTo($('#course-selection')).hide().fadeIn(600);
                 $('[data-toggle="tooltip"]').tooltip();
             });
@@ -425,6 +445,7 @@ $(function(){
     // download the search_items
     var search_list = [];
     $('#calendar').fullCalendar({
+        height: "auto",
         weekends: false, // will hide Saturdays and Sundays
         header: {left:"", right: ''},
         defaultView : "agendaWeek",
@@ -442,16 +463,19 @@ $(function(){
                             $('#calendar').fullCalendar( 'changeView', 'agendaWeek' );
                         }
                     },
-            eventClick: function(calEvent, jsEvent, view) {
-
-                var course_name = calEvent.title;
-                BootstrapDialog.alert({
-                    title: course_name,
-                    message: generate_course_desp(course_name)
-                });
-
-
-            }
+        eventClick: function(calEvent, jsEvent, view) {
+            var course_name = calEvent.title;
+            BootstrapDialog.alert({
+                title: course_name,
+                message: generate_course_desp(course_name)
+            });
+        },
+        eventMouseover: function(event, jsEvent, view ){
+            $(this).css("background-color", color_dict[event.crn]);
+        },
+        eventMouseout: function(event, jsEvent, view ){
+            $(this).css("background-color", "white");
+        },
     });
     $('#calendar').fullCalendar( 'addEventSource', class_events);
 
