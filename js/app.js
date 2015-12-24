@@ -406,7 +406,7 @@ function create_label_for_class(random_id_main, suggestion){
     // add colors
     var color = handle_color_creation(suggestion.crn);
     if(!(random_id_main in id_to_crn_dict)) { id_to_crn_dict[random_id_main] = suggestion.crn;}
-    var html_main = '<div class="dropdown" style="display:inline" ref="' + random_id_main +'"><span class="tag label label-info dropdown-toggle" data-toggle="dropdown" id="' + random_id_main + '" style="background-color:' + color + '">' + (suggestion.nn? suggestion.nn: suggestion.n) + '<a class="remove fa fa-times"></a></span><ul class="dropdown-menu" style="background-color:' + color + ';"id="drop-' + random_id_main +'">';
+    var html_main = '<div class="dropdown" style="display:inline" ref="' + random_id_main +'"><span class="tag label label-info dropdown-toggle" data-toggle="dropdown" id="' + random_id_main + '" style="background-color:' + color + '">' + (suggestion.nn? suggestion.nn: suggestion.n) + '<a class="remove fa fa-times"></a></span><ul class="dropdown-menu  session-dropdown" style="background-color:' + color + ';"id="drop-' + random_id_main +'">';
         
     html_main += create_label_dropdown(suggestion.crn, random_id_main, (suggestion.nn? suggestion.nn: suggestion.n), false);
     
@@ -418,7 +418,7 @@ function create_label_for_class(random_id_main, suggestion){
             var tooltip = suggestion.n + " requires " + key;
             var link_random_id = guidGenerator();
             if(!(link_random_id in id_to_crn_dict)) { id_to_crn_dict[link_random_id] = value;}
-            var link_html = '<div class="dropdown" style="display:inline"' + '" ref="' + random_id_main +'"><span style="background-color:' + l_color + '" class="tag label label-info dropdown-toggle" data-toggle="dropdown" data-placement="bottom" title="' + tooltip +  '" id="' + link_random_id +'">' + key + '</span><ul class="dropdown-menu" style="background-color:' + l_color + ';"id="drop-' + link_random_id +'">';
+            var link_html = '<div class="dropdown" style="display:inline"' + '" ref="' + random_id_main +'"><span style="background-color:' + l_color + '" class="tag label label-info dropdown-toggle" data-toggle="dropdown" data-placement="bottom" title="' + tooltip +  '" id="' + link_random_id +'">' + key + '</span><ul class="dropdown-menu session-dropdown" style="background-color:' + l_color + ';"id="drop-' + link_random_id +'">';
             link_html += create_label_dropdown(value, link_random_id, key, true);
             link_html +="</ul></div>";
             result[link_random_id] = link_html;
