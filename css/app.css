@@ -143,6 +143,11 @@ http://www.colourlovers.com/palette/580974/Adrift_in_Dreams
     border-color: #3B8686
 }
 
+/*fix the bootstrap bug*/
+#search-box{
+    height:45px;
+}
+
 #calendar{
     width: 100%;
 }
