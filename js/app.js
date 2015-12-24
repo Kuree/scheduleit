@@ -7,6 +7,7 @@ course_description_table = {};
 course_search_table = [];
 id_to_crn_dict = {};
 linked_course_overriden = {};
+suggestion_list = {};
 
 // proxy functions for current schedule index
 function set_current_class_index(i) {
@@ -434,6 +435,7 @@ function create_label_for_class(random_id_main, suggestion){
 function handle_selection(selected_course) {
     $('#search .typeahead').bind('typeahead:select', function(ev, suggestion) {
         var random_id = guidGenerator();
+        suggestion_list[random_id] = suggestion;
         var result = create_label_for_class(random_id, suggestion);
         for(var key in result){
             var html = result[key];
@@ -444,26 +446,30 @@ function handle_selection(selected_course) {
         }
         // add event listener
         $(document).on("click", "[ref=session_switch]", function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            e.stopImmediatePropagation();
             var text = $(e.target).text();
             var a = $(e.target).parent();
             var li = a.parent();
             var is_linked = li.attr("data-linked") === "yes";
-            var crn = a.attr("id");
+            var crn = $(this).attr("id");
+            var ref = $(this).parent().attr("ref");
             if(isNaN(crn)){
                 // original course number
                 if(is_linked){
-                    delete linked_course_overriden[random_id];
+                    delete linked_course_overriden[ref];
                 }
                 else{
-                    selected_course[random_id] = suggestion.crn;
+                    selected_course[ref] = suggestion_list[ref].crn;
                 }
             }else{
                 if(is_linked){
                     // add to overridden linked list 
-                    linked_course_overriden[random_id] = [crn];
+                    linked_course_overriden[ref] = [crn];
                 }
                 else{
-                    selected_course[random_id] = [crn];
+                    selected_course[ref] = [crn];
                 }
             }
             
