@@ -194,7 +194,29 @@ a {
 }
 
 @media only screen and (max-width: 750px) { 
-  #toggle-tag-search { 
+  #header-icon { 
     display: none; 
   } 
+}
+
+::-webkit-scrollbar {
+	width: 7px;
+}
+::-webkit-scrollbar-button {
+	width: 7px;
+	height:5px;
+}
+::-webkit-scrollbar-track {
+	background:#eee;
+	border: thin solid lightgray;
+	box-shadow: 0px 0px 3px #dfdfdf inset;
+	border-radius:10px;
+}
+::-webkit-scrollbar-thumb {
+	background:#999;
+	border: thin solid gray;
+	border-radius:10px;
+}
+::-webkit-scrollbar-thumb:hover {
+	background:#7d7d7d;
 }
