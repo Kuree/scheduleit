@@ -216,6 +216,10 @@ a {
     background-color:rgba(0, 0, 0, 0.3);
 }
 
+.session-dropdown {
+    margin-top : 1vh;
+}
+
 /*scrollbar*/
 ::-webkit-scrollbar {
 	width: 7px;
