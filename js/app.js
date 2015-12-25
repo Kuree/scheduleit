@@ -421,7 +421,7 @@ function create_label_dropdown(crn_list, id, default_value, is_linked){
     for(var key in temp_list){
         sorted_keys.push(key);
     }
-    sorted_keys.sort(function(a, b) { return a > b;});
+    sorted_keys.sort(function(a, b) { return temp_list[a] > temp_list[b];});
     
     for(var i = 0; i < sorted_keys.length; i++){
         var key = sorted_keys[i];
@@ -453,7 +453,7 @@ function create_label_for_class(random_id_main, suggestion){
             link_html += create_label_dropdown(value, link_random_id, key, true);
             link_html +="</ul></div>";
             result[link_random_id] = link_html;
-            if (!window.matchMedia || (window.matchMedia("(max-width: 700)").matches)) {
+            if ($(window).width() > 700) {
                 $('body').tooltip({
                     selector: "#" + link_random_id,
                     container: 'body'
@@ -772,7 +772,7 @@ $(function() {
     $("#toggle-web-tour").click(function() {
         tour.start(true);
     });
-    if (!window.matchMedia || (window.matchMedia("(max-width: 700)").matches)) {
+    if ($(window).width() > 700) {
         // enable tooltips
         $('[data-toggle="tooltip"]').tooltip();
     }
