@@ -95,14 +95,32 @@ function score_schedule(schedule) {
     }
 
     var total_negative = negative_score_1 * 5 + negative_score_2 * 5;
-    if (total_negative > 100) {
-        return 5;
+    if (total_negative > 85) {
+        return 15;
     } else {
         return 100 - total_negative;
     }
 }
 
+function has_overlap(array1, array2){
+    // N * M, since it's not a large list
+    var result = [];
+    for(var i = 0; i < array1.length; i++){
+        for(var j = 0; j < array2.length; j++){
+            if(array1[i] === array2[j]){
+                result.push([array1[i]]);
+            }
+        }
+    }
+    return result;
+}
+
 function schedule(selected_course, courses, search_items) {
+    // flatten overridden list
+    var course_overriden = [];
+    for(var key in linked_course_overriden){
+        course_overriden = $.merge(course_overriden, linked_course_overriden[key]);
+    }
     // create a two dimensional array
     var classes = []
     $.each(selected_course, function(ref_key, entry) {
@@ -110,13 +128,17 @@ function schedule(selected_course, courses, search_items) {
         // need to check if l exists
         var entries = get_class_entry_from_crn(search_items, entry[0]);
         if (entries.length > 0 && entries[0].l) {
-            if(ref_key in linked_course_overriden){
-                classes.push(linked_course_overriden[ref_key]);
-            }else{
-                $.each(entries[0].l, function(name, links) {
+            $.each(entries[0].l, function(name, links) {
+                var overlapped_list = has_overlap(links, course_overriden);
+                if(overlapped_list.length > 0){
+                    for(var i = 0; i < overlapped_list.length; i++){
+                        var entry = overlapped_list[i];
+                        classes.push(entry);
+                    }
+                }else{
                     classes.push(links);
-                });
-            }
+                };
+            });
         }
     });
     var result = [];
