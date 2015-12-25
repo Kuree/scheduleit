@@ -91,12 +91,12 @@ function score_schedule(schedule) {
                 negative_score_2++;
             }
         }
-
     }
 
     var total_negative = negative_score_1 * 5 + negative_score_2 * 5;
-    if (total_negative > 85) {
-        return 15;
+    // work-around of the bug
+    if (total_negative > 80) {
+        return 20;
     } else {
         return 100 - total_negative;
     }
@@ -416,7 +416,15 @@ function create_label_dropdown(crn_list, id, default_value, is_linked){
         }
     }
     result += '<li ref="' + id + '" data-linked="' + (is_linked? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + default_value.replace(" ", "_") + '"><strong>'  + default_value + '</strong></a></li>';
+    // sort the temp_list so that it's in alphabetic order
+    sorted_keys = [];
     for(var key in temp_list){
+        sorted_keys.push(key);
+    }
+    sorted_keys.sort(function(a, b) { return a > b;});
+    
+    for(var i = 0; i < sorted_keys.length; i++){
+        var key = sorted_keys[i];
         var name = temp_list[key];
         result += '<li ref="' + id + '"data-linked="' + (is_linked? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + key + '"><strong>' + name + '</strong></a></li>';
     }
