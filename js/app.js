@@ -453,10 +453,12 @@ function create_label_for_class(random_id_main, suggestion){
             link_html += create_label_dropdown(value, link_random_id, key, true);
             link_html +="</ul></div>";
             result[link_random_id] = link_html;
-            $('body').tooltip({
-                selector: "#" + link_random_id,
-                container: 'body'
-            });
+            if (!window.matchMedia || (window.matchMedia("(max-width: 700)").matches)) {
+                $('body').tooltip({
+                    selector: "#" + link_random_id,
+                    container: 'body'
+                });
+            }
         });
     }
     return result;
@@ -770,6 +772,8 @@ $(function() {
     $("#toggle-web-tour").click(function() {
         tour.start(true);
     });
-
-    $('[data-toggle="tooltip"]').tooltip();
+    if (!window.matchMedia || (window.matchMedia("(max-width: 700)").matches)) {
+        // enable tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+    }
 });
