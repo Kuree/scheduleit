@@ -82,36 +82,40 @@
         <div class="row" id="schedule-row">
             <div class="col-md-8 col-md-offset-2">
                 <hr>
-                <span class="star-rating">
-                  <input readonly="readonly" type="radio" name="rating" value="1"><i id="star-1"></i>
-                  <input readonly="readonly" type="radio" name="rating" value="2"><i id="star-2"></i>
-                  <input readonly="readonly" type="radio" name="rating" value="3"><i id="star-3"></i>
-                  <input readonly="readonly" type="radio" name="rating" value="4"><i id="star-4"></i>
-                  <input readonly="readonly" type="radio" name="rating" value="5"><i id="star-5"></i>
-                </span>
-                <div class="btn-group pull-right" role="group" aria-label="...">
-                    <button type="button" class="btn btn-default" id="show-left"> <i class="fa fa-chevron-left"></i>
-                    </button>
-                    <button type="button" class="btn btn-default" id="paging">Loading</button>
-                    <button type="button" class="btn btn-default" id="show-right"> <i class="fa fa-chevron-right"></i>
-                        </span>
-                    </button>
-                    <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Download the current schedule" id="download">Download</button>
-                    <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Save to Ninja" id="save-schedule"><i class="fa fa-floppy-o"></i></button>
-                    <!-- Modal -->
-                    <div class="modal fade" id="download-modal" tabindex="-1" role="dialog" aria-labelledby="download-model-title">
-                        <div class="modal-dialog" role="document">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
-                                    </button>
-                                    <h4 class="modal-title" id="download-model-title">Download</h4>
-                                </div>
-                                <div class="modal-body download-modal-body">
-                                    <iframe src id="download-iframe" style="zoom:0.60; height:95%" width="99.6%" frameborder="0"></iframe>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <div class="col-md-3" data-toggle="tooltip" data-placement="bottom" title="Ninja course rating">
+                    <span class="star-rating">
+                    <input readonly="readonly" type="radio" name="rating" value="1"><i id="star-1"></i>
+                    <input readonly="readonly" type="radio" name="rating" value="2"><i id="star-2"></i>
+                    <input readonly="readonly" type="radio" name="rating" value="3"><i id="star-3"></i>
+                    <input readonly="readonly" type="radio" name="rating" value="4"><i id="star-4"></i>
+                    <input readonly="readonly" type="radio" name="rating" value="5"><i id="star-5"></i>
+                    </span>
+                </div>
+                <div class="col-md-9">
+                    <div class="btn-group pull-right" role="group" aria-label="...">
+                        <button type="button" class="btn btn-default" id="show-left"> <i class="fa fa-chevron-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-default" id="paging">Loading</button>
+                        <button type="button" class="btn btn-default" id="show-right"> <i class="fa fa-chevron-right"></i>
+                            </span>
+                        </button>
+                        <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Download the current schedule" id="download">Download</button>
+                        <button type="button" class="btn btn-default" data-toggle="tooltip" data-placement="bottom" title="Save to Ninja" id="save-schedule"><i class="fa fa-floppy-o"></i></button>
+                        <!-- Modal -->
+                        <div class="modal fade" id="download-modal" tabindex="-1" role="dialog" aria-labelledby="download-model-title">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+                                        </button>
+                                        <h4 class="modal-title" id="download-model-title">Download</h4>
+                                    </div>
+                                    <div class="modal-body download-modal-body">
+                                        <iframe src id="download-iframe" style="zoom:0.60; height:95%" width="99.6%" frameborder="0"></iframe>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
