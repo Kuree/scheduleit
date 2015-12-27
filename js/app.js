@@ -841,7 +841,7 @@ function get_save_name(callback) {
 $(function () {
     // hide UI item first
     if (is_local_classes_empty()) {
-        $("#upload").hide();
+        $("#upload").show(300);
     }
     
     // download the search_items
