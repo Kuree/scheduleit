@@ -36,14 +36,14 @@ function get_current_class_index() {
 
 
 function guidGenerator() {
-    var S4 = function() {
+    var S4 = function () {
         return (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
     };
     return (S4() + S4() + "-" + S4());
 }
 
 function get_class_entry_from_crn(search_items, crn) {
-    return $.grep(search_items, function(n, i) {
+    return $.grep(search_items, function (n, i) {
         return $.inArray(crn, n.crn) != -1;
     });
 }
@@ -112,12 +112,12 @@ function score_schedule(schedule) {
     }
 }
 
-function has_overlap(array1, array2){
+function has_overlap(array1, array2) {
     // N * M, since it's not a large list
     var result = [];
-    for(var i = 0; i < array1.length; i++){
-        for(var j = 0; j < array2.length; j++){
-            if(array1[i] === array2[j]){
+    for (var i = 0; i < array1.length; i++) {
+        for (var j = 0; j < array2.length; j++) {
+            if (array1[i] === array2[j]) {
                 result.push([array1[i]]);
             }
         }
@@ -128,24 +128,24 @@ function has_overlap(array1, array2){
 function schedule(selected_course, courses, search_items) {
     // flatten overridden list
     var course_overriden = [];
-    for(var key in linked_course_overriden){
+    for (var key in linked_course_overriden) {
         course_overriden = $.merge(course_overriden, linked_course_overriden[key]);
     }
     // create a two dimensional array
     var classes = [];
-    $.each(selected_course, function(ref_key, entry) {
+    $.each(selected_course, function (ref_key, entry) {
         classes.push(entry);
         // need to check if l exists
         var entries = get_class_entry_from_crn(search_items, entry[0]);
         if (entries.length > 0 && entries[0].l) {
-            $.each(entries[0].l, function(name, links) {
+            $.each(entries[0].l, function (name, links) {
                 var overlapped_list = has_overlap(links, course_overriden);
-                if(overlapped_list.length > 0){
-                    for(var i = 0; i < overlapped_list.length; i++){
+                if (overlapped_list.length > 0) {
+                    for (var i = 0; i < overlapped_list.length; i++) {
                         var entry = overlapped_list[i];
                         classes.push(entry);
                     }
-                }else{
+                } else {
                     classes.push(links);
                 }
             });
@@ -154,9 +154,9 @@ function schedule(selected_course, courses, search_items) {
     var result = [];
     var current_classes = [];
     var available_classes = [];
-    $.each(classes, function(index, entry1) {
+    $.each(classes, function (index, entry1) {
         var class_entry = [];
-        $.each(entry1, function(index2, entry2) {
+        $.each(entry1, function (index2, entry2) {
             var entry3 = courses[entry2];
             entry3["crn"] = entry2;
             class_entry.push(entry3);
@@ -340,8 +340,8 @@ function is_new_class_conflicted(classes, new_class) {
 }
 
 function setup_typeahead(search_items, tag_items) {
-    var filted_list = $.grep(search_items, function(entry) { 
-    return entry.is_l !== true;
+    var filted_list = $.grep(search_items, function (entry) {
+        return entry.is_l !== true;
     });
     var courses = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('n'),
@@ -351,7 +351,7 @@ function setup_typeahead(search_items, tag_items) {
     $('#search .typeahead').typeahead(null, {
         name: 'bucknell-courses',
         source: courses.ttAdapter(),
-        displayKey: function(e) {
+        displayKey: function (e) {
             if (e.nn) {
                 return "nn";
             } else {
@@ -364,7 +364,7 @@ function setup_typeahead(search_items, tag_items) {
                 'Unable to find any courses that match the query',
                 '</div>'
             ].join('\n'),
-            suggestion: function(e) {
+            suggestion: function (e) {
                 return create_description(e, search_items)
             }
         },
@@ -409,60 +409,60 @@ function handle_color_creation(crn_list) {
     return color;
 }
 
-function create_label_dropdown(crn_list, id, default_value, is_linked){
+function create_label_dropdown(crn_list, id, default_value, is_linked) {
     // do a linear search
     // doing as best as I can
     var count = 0;
     var result = "";
     var temp_list = {};
-    for(var i = 0; i < course_search_table.length && count < crn_list.length; i++){
+    for (var i = 0; i < course_search_table.length && count < crn_list.length; i++) {
         var entry = course_search_table[i];
-        if(crn_list.indexOf(entry.n) >= 0){
+        if (crn_list.indexOf(entry.n) >= 0) {
             temp_list[entry.n] = entry.nn;
             count++;
         }
     }
-    result += '<li ref="' + id + '" data-linked="' + (is_linked? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + default_value.replace(" ", "_") + '"><strong>'  + default_value + '</strong></a></li>';
+    result += '<li ref="' + id + '" data-linked="' + (is_linked ? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + default_value.replace(" ", "_") + '"><strong>' + default_value + '</strong></a></li>';
     // sort the temp_list so that it's in alphabetic order
     var sorted_keys = [];
-    for(var key in temp_list){
+    for (var key in temp_list) {
         sorted_keys.push(key);
     }
-    sorted_keys.sort(function(a, b) { return (temp_list[a] > temp_list[b]) ? 1 : -1;});
-    
-    for(var i = 0; i < sorted_keys.length; i++){
+    sorted_keys.sort(function (a, b) { return (temp_list[a] > temp_list[b]) ? 1 : -1; });
+
+    for (var i = 0; i < sorted_keys.length; i++) {
         var key = sorted_keys[i];
         var name = temp_list[key];
-        result += '<li ref="' + id + '"data-linked="' + (is_linked? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + key + '"><strong>' + name + '</strong></a></li>';
+        result += '<li ref="' + id + '"data-linked="' + (is_linked ? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + key + '"><strong>' + name + '</strong></a></li>';
     }
     return result;
 }
 
 // function returns a dictionary {id:html}
-function create_label_for_class(random_id_main, suggestion, supress_link){
+function create_label_for_class(random_id_main, suggestion, supress_link) {
     var result = {};
     // add colors
     var color = handle_color_creation(suggestion.crn);
     if (!(random_id_main in id_to_crn_dict)) { id_to_crn_dict[random_id_main] = suggestion.crn; }
     // check whether the entry to add is a linked list
     var is_linked = (typeof suggestion.is_l) !== "undefined";
-    var html_main = '<div class="dropdown" style="display:inline" ref="' + random_id_main +'"><span class="tag label label-info dropdown-toggle" data-toggle="dropdown" id="' + random_id_main + '" style="background-color:' + color + '">' 
-    + (suggestion.nn? suggestion.nn: suggestion.n) +  (is_linked? "" : '<a class="remove fa fa-times">') + '</a></span><ul class="dropdown-menu  session-dropdown" style="background-color:' + color + ';"id="drop-' + random_id_main +'">';
-    
-    html_main += create_label_dropdown(suggestion.crn, random_id_main, (suggestion.nn? suggestion.nn: suggestion.n), false);
-    
-    html_main +="</ul></div>";
+    var html_main = '<div class="dropdown" style="display:inline" ref="' + random_id_main + '"><span class="tag label label-info dropdown-toggle" data-toggle="dropdown" id="' + random_id_main + '" style="background-color:' + color + '">'
+        + (suggestion.nn ? suggestion.nn : suggestion.n) + (is_linked ? "" : '<a class="remove fa fa-times">') + '</a></span><ul class="dropdown-menu  session-dropdown" style="background-color:' + color + ';"id="drop-' + random_id_main + '">';
+
+    html_main += create_label_dropdown(suggestion.crn, random_id_main, (suggestion.nn ? suggestion.nn : suggestion.n), false);
+
+    html_main += "</ul></div>";
     result[random_id_main] = html_main;
-    if(is_linked || supress_link) { return result; }
+    if (is_linked || supress_link) { return result; }
     if (suggestion.l && Object.keys(suggestion.l).length > 0) {
-        $.each(suggestion.l, function(key, value) {
+        $.each(suggestion.l, function (key, value) {
             var l_color = handle_color_creation(value);
             var tooltip = suggestion.n + " requires " + key;
             var link_random_id = guidGenerator();
-            if(!(link_random_id in id_to_crn_dict)) { id_to_crn_dict[link_random_id] = value;}
-            var link_html = '<div class="dropdown" style="display:inline"' + '" ref="' + random_id_main +'"><span style="background-color:' + l_color + '" class="tag label label-info dropdown-toggle" data-toggle="dropdown" data-placement="bottom" title="' + tooltip +  '" id="' + link_random_id +'">' + key + '</span><ul class="dropdown-menu session-dropdown" style="background-color:' + l_color + ';"id="drop-' + link_random_id +'">';
+            if (!(link_random_id in id_to_crn_dict)) { id_to_crn_dict[link_random_id] = value; }
+            var link_html = '<div class="dropdown" style="display:inline"' + '" ref="' + random_id_main + '"><span style="background-color:' + l_color + '" class="tag label label-info dropdown-toggle" data-toggle="dropdown" data-placement="bottom" title="' + tooltip + '" id="' + link_random_id + '">' + key + '</span><ul class="dropdown-menu session-dropdown" style="background-color:' + l_color + ';"id="drop-' + link_random_id + '">';
             link_html += create_label_dropdown(value, link_random_id, key, true);
-            link_html +="</ul></div>";
+            link_html += "</ul></div>";
             result[link_random_id] = link_html;
             if ($(window).width() > 700) {
                 $('body').tooltip({
@@ -475,20 +475,20 @@ function create_label_for_class(random_id_main, suggestion, supress_link){
     return result;
 }
 
-function get_search_entry_from_crn(crn){
-    for(var i = 0; i < course_search_table.length; i++){
-        if(course_search_table[i].n === crn){
+function get_search_entry_from_crn(crn) {
+    for (var i = 0; i < course_search_table.length; i++) {
+        if (course_search_table[i].n === crn) {
             return course_search_table[i];
         }
     }
 }
 
 
-function add_class_entry_to_selected(entry, supress_link){
+function add_class_entry_to_selected(entry, supress_link) {
     var random_id = guidGenerator();
     suggestion_list[random_id] = entry;
     var result = create_label_for_class(random_id, entry, supress_link);
-    for(var key in result){
+    for (var key in result) {
         var html = result[key];
         $(html).appendTo($('#course-selection')).hide().fadeIn(600);
         
@@ -496,7 +496,7 @@ function add_class_entry_to_selected(entry, supress_link){
         $("#key").dropdown();
     }
     // add event listener
-    $(document).on("click", "[ref=session_switch]", function(e) {
+    $(document).on("click", "[ref=session_switch]", function (e) {
         e.stopPropagation();
         e.preventDefault();
         e.stopImmediatePropagation();
@@ -506,20 +506,20 @@ function add_class_entry_to_selected(entry, supress_link){
         var is_linked = li.attr("data-linked") === "yes";
         var crn = $(this).attr("id");
         var ref = $(this).parent().attr("ref");
-        if(isNaN(crn)){
+        if (isNaN(crn)) {
             // original course number
-            if(is_linked){
+            if (is_linked) {
                 delete linked_course_overriden[ref];
             }
-            else{
+            else {
                 selected_course[ref] = suggestion_list[ref].crn;
             }
-        }else{
-            if(is_linked){
+        } else {
+            if (is_linked) {
                 // add to overridden linked list 
                 linked_course_overriden[ref] = [crn];
             }
-            else{
+            else {
                 selected_course[ref] = [crn];
             }
         }
@@ -527,18 +527,18 @@ function add_class_entry_to_selected(entry, supress_link){
         // change the label text
         var id = li.attr("ref");
         $("#" + id).text(text).fadeIn(200);
-        
-        
+
+
     });
 
     // add it to the selected courses if it's not a linked list
-    if(typeof(entry.is_l) === "undefined"){
+    if (typeof (entry.is_l) === "undefined") {
         selected_course[random_id] = entry.crn;
     }
 }
 
 function handle_selection(selected_course) {
-    $('#search .typeahead').bind('typeahead:select', function(ev, suggestion) {
+    $('#search .typeahead').bind('typeahead:select', function (ev, suggestion) {
         add_class_entry_to_selected(suggestion, false);
 
         // clear the search input
@@ -597,11 +597,11 @@ function create_tour() {
     // Instance the tour
     var tour = new Tour({
         steps: [{
-                element: "#toggle-tag-search",
-                title: "Quick requirement lookup",
-                content: "Click here to look up all the requirement-related courses",
-                placement: "left"
-            }, {
+            element: "#toggle-tag-search",
+            title: "Quick requirement lookup",
+            content: "Click here to look up all the requirement-related courses",
+            placement: "left"
+        }, {
                 element: "#search-box",
                 title: "Search courses",
                 content: "Type the course name or CRN here to add your class to the search list",
@@ -626,7 +626,7 @@ function create_tour() {
     return tour;
 }
 
-$(function() {
+$(function () {
     // download the search_items
     var search_list = [];
     $('#calendar').fullCalendar({
@@ -643,7 +643,7 @@ $(function() {
         minTime: "8:00:00",
         maxTime: "22:00:00",
         displayEventTime: false,
-        windowResize: function(view) {
+        windowResize: function (view) {
             if ($(window).width() < 300) {
                 $('#calendar').fullCalendar('changeView', 'basicWeek');
 
@@ -651,24 +651,24 @@ $(function() {
                 $('#calendar').fullCalendar('changeView', 'agendaWeek');
             }
         },
-        eventClick: function(calEvent, jsEvent, view) {
+        eventClick: function (calEvent, jsEvent, view) {
             var course_name = calEvent.title;
             BootstrapDialog.alert({
                 title: course_name,
                 message: generate_course_desp(course_name)
             });
         },
-        eventMouseover: function(event, jsEvent, view) {
+        eventMouseover: function (event, jsEvent, view) {
             $(this).css("background-color", color_dict[event.crn]);
         },
-        eventMouseout: function(event, jsEvent, view) {
+        eventMouseout: function (event, jsEvent, view) {
             $(this).css("background-color", "white");
         },
     });
     $('#calendar').fullCalendar('addEventSource', class_events);
 
 
-    $(document).on("click", ".remove", function(e) {
+    $(document).on("click", ".remove", function (e) {
         var parent = $(e.target).parent();
         var ref = parent.attr("id");
         // remove the html element
@@ -678,18 +678,18 @@ $(function() {
         delete selected_course[ref];
     });
 
-    $.getJSON("data/bucknell/search.json", function(search_items) {
+    $.getJSON("data/bucknell/search.json", function (search_items) {
         course_search_table = search_items;
-        $('#tag-search-modal').on('show.bs.modal', function(e) {
+        $('#tag-search-modal').on('show.bs.modal', function (e) {
             // first time
             var isEmpty = $("#tag-content").html() === "";
             if (isEmpty) {
-                $.getJSON("data/bucknell/tag.json", function(tags) {
+                $.getJSON("data/bucknell/tag.json", function (tags) {
                     for (var ccc in tags) {
                         $("#sidebar").append('<li><a ref=tag-search>' + ccc + '</a></li>');
 
                     }
-                    $("[ref=tag-search]").click(function(e) {
+                    $("[ref=tag-search]").click(function (e) {
                         var tag = $(e.target).text();
                         var p = create_tag_desc(search_items, tags, tag);
                         $("#tag-content").empty();
@@ -707,13 +707,13 @@ $(function() {
         search_list = search_items;
     });
 
-    $.getJSON("data/bucknell/courses.json", function(data) {
+    $.getJSON("data/bucknell/courses.json", function (data) {
         selected_course = {};
         handle_selection(selected_course);
 
         course_description_table = data;
 
-        $('#search-button').click(function() {
+        $('#search-button').click(function () {
             if (Object.keys(selected_course).length == 0) {
                 BootstrapDialog.alert({
                     type: BootstrapDialog.TYPE_WARNING,
@@ -728,17 +728,17 @@ $(function() {
 
     });
 
-    $("#show-left").click(function() {
+    $("#show-left").click(function () {
         set_current_class_index(current_class_index - 1);
     });
 
-    $("#show-right").click(function() {
+    $("#show-right").click(function () {
         set_current_class_index(current_class_index + 1);
     });
 
 
 
-    $("#download").click(function() {
+    $("#download").click(function () {
         var classes = schedule_result[current_class_index];
         var url = "download.html?";
         for (var i = 0; i < classes.length; i++) {
@@ -747,39 +747,39 @@ $(function() {
         }
 
         url = url.substring(0, url.length - 1);
-        $('#download-modal').on('show.bs.modal', function() {
+        $('#download-modal').on('show.bs.modal', function () {
             $('#download-iframe').attr("src", url);
 
         });
         $('#download-modal').modal('show');
     });
 
-    $("#toggle-tag-search").click(function() {
+    $("#toggle-tag-search").click(function () {
         $("#tag-search-modal").modal('toggle');
     });
 
 
-    $("#jump-schedule").click(function() {
+    $("#jump-schedule").click(function () {
         set_current_class_index(parseInt($("#jump-value").val()));
         $('#paging').popover('hide');
     });
 
     $("#paging").popover({
         html: true,
-        title: function() {
+        title: function () {
             return "Choose a schedule to display";
         },
-        content: function() {
+        content: function () {
             return $("#jump-content").html();
         },
         placement: "bottom",
     });
     // fix for https://github.com/twbs/bootstrap/issues/16732
-    $('body').on('hidden.bs.popover', function(e) {
+    $('body').on('hidden.bs.popover', function (e) {
         $(e.target).data("bs.popover").inState.click = false;
     });
 
-    $(document).on("click", "#jump-schedule", function(e) {
+    $(document).on("click", "#jump-schedule", function (e) {
         if (!isNaN($("#jump-value").val())) {
             var val = parseInt($("#jump-value").val());
             var max_val = parseInt($("#jump-value").attr("data-max"));
@@ -790,17 +790,17 @@ $(function() {
         $("#paging").popover("hide");
     });
 
-    $(document).on("click", "#cancel-jump-schedule", function(e) {
+    $(document).on("click", "#cancel-jump-schedule", function (e) {
         $("#paging").popover("hide");
     });
 
     var tour = create_tour();
-    $("#toggle-web-tour").click(function() {
+    $("#toggle-web-tour").click(function () {
         tour.start(true);
     });
     
     // test the schedule storage
-    if(!localStorage.getItem("storage")){
+    if (!localStorage.getItem("storage")) {
         $("#upload").hide();
     } else {
         var raw_class_list = localStorage.getItem("storage");
@@ -808,7 +808,7 @@ $(function() {
         if (Object.keys(class_list).length === 0) {
             $("#upload").hide();
         }
-        $("#upload").click(function(){
+        $("#upload").click(function () {
             $("#course-upload-table").empty();
             var raw_class_list = localStorage.getItem("storage");
             var class_list = JSON.parse(raw_class_list);
@@ -817,31 +817,31 @@ $(function() {
                 return;
             }
             var raw_html = "";
-            for(var name in class_list){
+            for (var name in class_list) {
                 var classes = class_list[name];
                 raw_html += "<tr><td>" + name + "</td><td>";
                 var temp = "";
-                for(var j = 0; j < classes.length; j++){
+                for (var j = 0; j < classes.length; j++) {
                     temp += course_description_table[classes[j]].n + "; " + (j % 3 == 2 && j != classes.length - 1 ? "<br>" : "");
                 }
                 raw_html += temp.substring(0, temp.length - 2) + "</td>";
                 var id = 'schedule-' + name;
-                raw_html += '<td><a><i id="' + id + '" class="fa fa-upload upload-icon"></i></a><a><i style="color:red; position:relative; left:1vw" ref="' 
+                raw_html += '<td><a><i id="' + id + '" class="fa fa-upload upload-icon"></i></a><a><i style="color:red; position:relative; left:1vw" ref="'
                 + id + '"class="fa fa-times upload-delete-icon"></i></a></td></tr>';
             }
             $("#course-upload-table").append(raw_html);
             
             // set up the events
-            $(".upload-icon").click(function(){
+            $(".upload-icon").click(function () {
                 var id = $(this).attr("id");
                 var name = id.replace(id.split("-")[0] + "-", "");
                 // JS scoping problem
                 var load_classes = JSON.parse(localStorage.getItem("storage"));
                 var load_class = load_classes.name;
-                for(var i = 0; i < load_class.length; i++){
+                for (var i = 0; i < load_class.length; i++) {
                     var entry = get_search_entry_from_crn(load_class[i]);
                     // add it to the overriden list
-                    if(entry.is_l){
+                    if (entry.is_l) {
                         var random_id = guidGenerator();
                         linked_course_overriden[random_id] = [load_class[i]];
                     }
@@ -849,8 +849,8 @@ $(function() {
                 }
                 $('#load-modal').modal("hide");
             });
-            
-            $(".upload-delete-icon").click(function(){
+
+            $(".upload-delete-icon").click(function () {
                 // re-consider the implementation.
                 // consiering move it to global variable
                 var id = $(this).attr("ref");
@@ -860,7 +860,7 @@ $(function() {
                 localStorage.setItem("storage", JSON.stringify(load_classes));
                 $('#load-modal').modal("hide");
                 $(this).closest("tr").fadeOut(400).remove();
-                if(Object.keys(load_classes).length === 0){
+                if (Object.keys(load_classes).length === 0) {
                     $("#upload").hide();
                 }
             });
@@ -869,41 +869,41 @@ $(function() {
             $('#load-modal').modal("show");
         });
     }
-    
-    $("#save-schedule").click(function(){
-         BootstrapDialog.show({
-             message: 'Please enter the name for your schedule: <input type="text" class="form-control">',
-             onhide: function (dialogRef) {
-                 var name = dialogRef.getModalBody().find('input').val();
-                 if ($.trim(name).length === 0) {
-                     return false;
-                 }
-             },
-             buttons: [{
-                 label: 'OK',
-                 action: function (dialogRef) {
-                     var name = dialogRef.getModalBody().find('input').val();
-                     var classes = schedule_result[current_class_index];
-                     var class_list = [];
-                     for (var i = 0; i < classes.length; i++) {
+
+    $("#save-schedule").click(function () {
+        BootstrapDialog.show({
+            message: 'Please enter the name for your schedule: <input type="text" class="form-control">',
+            onhide: function (dialogRef) {
+                var name = dialogRef.getModalBody().find('input').val();
+                if ($.trim(name).length === 0) {
+                    return false;
+                }
+            },
+            buttons: [{
+                label: 'OK',
+                action: function (dialogRef) {
+                    var name = dialogRef.getModalBody().find('input').val();
+                    var classes = schedule_result[current_class_index];
+                    var class_list = [];
+                    for (var i = 0; i < classes.length; i++) {
                         class_list.push(classes[i].crn);
                     }
-                     // save to browser
-                     // pop up to enter the name
-                     var str_storage = localStorage.getItem("storage");
-                     var storage = JSON.parse(str_storage);
-                     if ((typeof storage === "undefined") || (storage == null)) {
-                         storage = {};
-                     }
-                     storage[name] = class_list;
-                     localStorage.setItem("storage", JSON.stringify(storage));
+                    // save to browser
+                    // pop up to enter the name
+                    var str_storage = localStorage.getItem("storage");
+                    var storage = JSON.parse(str_storage);
+                    if ((typeof storage === "undefined") || (storage == null)) {
+                        storage = {};
+                    }
+                    storage[name] = class_list;
+                    localStorage.setItem("storage", JSON.stringify(storage));
 
-                     dialogRef.close();
-                     
-                     $("#upload").fadeIn(300);
-                 }
-             }]
-         });
+                    dialogRef.close();
+
+                    $("#upload").fadeIn(300);
+                }
+            }]
+        });
     });
     
     // $("#search-box").keypress(function(){
