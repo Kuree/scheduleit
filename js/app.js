@@ -840,7 +840,7 @@ function get_save_name(callback) {
 
 $(function () {
     // hide UI item first
-    if (is_local_classes_empty()) {
+    if (!is_local_classes_empty()) {
         $("#upload").show(300);
     }
     
