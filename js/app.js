@@ -1,3 +1,4 @@
+/* global schedule_result_temp */
 /* global selected_course */
 /* global course_search_table */
 /* global id_to_crn_dict */
@@ -11,6 +12,7 @@
 class_events = [];
 current_class_index = 0;
 schedule_result = [];
+schedule_result_temp = [];  // this is used as a cache to speed up duplication search
 color_dict = {};
 course_description_table = {};
 course_search_table = [];
@@ -151,6 +153,8 @@ function get_array_overlap(array1, array2) {
  * @param  {array} search_items - array list obtained form search.json
  */
 function schedule(selected_course, courses, search_items) {
+    // result the cache
+    schedule_result_temp = []
     // flatten overridden list
     var course_overriden = [];
     for (var key in linked_course_overriden) {
@@ -321,11 +325,29 @@ function copy_array(old_array) {
     return result;
 }
 
+function add_to_array_without_dup(result, entry){
+    // this is a modified N * M search
+    // using previous result to speed up
+    var temp = "";
+    for(var i = 0; i< entry.length; i++){
+        temp += entry[i].crn;
+    }
+    for(var j = 0; j < schedule_result_temp.length; j++){
+        if(schedule_result_temp[j] === temp){
+            console.log("dup found");
+            return;
+        }
+    }
+    result.push(copy_array(entry));
+    schedule_result_temp.push(temp);
+
+}
+
 // this is recursive call with dynamic programming fashion
 function select_course(current_classes, remaining_classes, result) {
     if (remaining_classes.length === 0) {
         // a valid choice
-        result.push(copy_array(current_classes));
+        add_to_array_without_dup(result, current_classes);
         return;
     }
 
