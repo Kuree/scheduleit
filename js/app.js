@@ -697,7 +697,7 @@ function handle_upload() {
         var name = ref.replace(ref.split("-")[0] + "-", "");
         remove_local_class(name);
         $(this).closest("tr").fadeOut(400).remove();
-        if (Object.keys(load_classes).length === 0) {
+        if (is_local_classes_empty()) {
             $("#upload").hide();
         }
     });
@@ -742,7 +742,7 @@ function create_tour() {
 
 function get_save_name(callback) {
     var input_name;
-    new BootstrapDialog.show({
+    BootstrapDialog.show({
         title: 'Give it a name so that Ninja can remember it',
         message: 'Please enter the name for your schedule: <input type="text" class="form-control">',
         closable: false,
