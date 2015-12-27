@@ -80,7 +80,7 @@ function is_in_linked_list(entry, item){
         return false;
     }
     for(key in entry){
-        var array = entry[key]
+        var array = entry[key];
         for(var i = 0; i < array.length; i++){
             if(array[i] === item){
                 return true;
@@ -169,7 +169,7 @@ function get_array_overlap(array1, array2) {
  */
 function schedule(selected_course, courses, search_items) {
     // result the cache
-    schedule_result_temp = []
+    schedule_result_temp = [];
     // flatten overridden list
     var course_overriden = [];
     for (var key in linked_course_overriden) {
@@ -439,6 +439,7 @@ function setup_typeahead(search_items, tag_items) {
         },
         limit: 100
     });
+    handle_tt_menu();
 }
 
 function get_local_classes() {
@@ -550,7 +551,7 @@ function create_label_for_class(random_id_main, suggestion, supress_link, r_id) 
         $.each(suggestion.l, function (key, value) {
             var l_color = handle_color_creation(value);
             var tooltip = suggestion.n + " requires " + key;
-            var link_random_id = (r_id === null) ? guidGenerator() : r_id;
+            var link_random_id = r_id || guidGenerator();
             if (!(link_random_id in id_to_crn_dict)) { id_to_crn_dict[link_random_id] = value; }
             var link_html = '<div class="dropdown" style="display:inline"' + '" ref="' + random_id_main + '"><span style="background-color:' + l_color + '" class="tag label label-info dropdown-toggle" data-toggle="dropdown" data-placement="bottom" title="' + tooltip + '" id="' + link_random_id + '">' + key + '</span><ul class="dropdown-menu session-dropdown" style="background-color:' + l_color + ';"id="drop-' + link_random_id + '">';
             link_html += create_label_dropdown(value, link_random_id, key, true);
@@ -576,10 +577,26 @@ function get_search_entry_from_crn(crn) {
     return null;
 }
 
+function handle_tt_menu(){
+   var menu = $(".tt-menu");
+   var parent = menu.parent().parent().parent();
+   console.log(parent.width());
+   menu.css("width", parent.width());
+}
 
-function add_class_entry_to_selected(entry, supress_link, r_id = null) {
+function handle_tooltip(){
+    if ($(window).width() >= 700) {
+        // enable tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+    } else{
+        $('[data-toggle="tooltip"]').tooltip("destroy");
+    }
+}
+
+
+function add_class_entry_to_selected(entry, supress_link, r_id) {
     // if r_id is specified, it will force to use that id for all elements
-    var random_id = (r_id === null) ? guidGenerator() : r_id;
+    var random_id = r_id || guidGenerator();
     suggestion_list[random_id] = entry;
     var result = create_label_for_class(random_id, entry, supress_link, r_id);
     for (var key in result) {
@@ -639,7 +656,7 @@ function handle_selection(selected_course) {
     });
 }
 
-function generate_course_desp(course_name) {
+function generate_course_from_name(course_name) {
     var entry, entry2;
     var crn;
     if (isNaN(course_name)) {
@@ -666,9 +683,9 @@ function generate_course_desp(course_name) {
         crn = course_name;
 
     }
-    return "<p><b>Title: </b>" + entry2.ti + "</p>" + "<p><b>Instructor: </b>" + entry.i + "</p>" +
+    return {"crn" : crn, "html" : "<p><b>Title: </b>" + entry2.ti + "</p>" + "<p><b>Instructor: </b>" + entry.i + "</p>" +
         "<p><b>Description: </b>" + entry2.d + "</p>" + "<p><b>Location: </b>" + (entry.r === "" ? "TBA" : entry.r) + "</p>" +
-        "<p><b>CRN: </b>" + crn + "</p>";
+        "<p><b>CRN: </b>" + crn + "</p>"};
 }
 
 function create_tag_desc(desc_table, tags, ccc) {
@@ -870,10 +887,14 @@ $(function () {
         },
         eventClick: function (calEvent, jsEvent, view) {
             var course_name = calEvent.title;
-            BootstrapDialog.alert({
+            var course = generate_course_from_name(course_name);
+            var dialog = new BootstrapDialog({
                 title: course_name,
-                message: generate_course_desp(course_name)
+                message: course.html
             });
+            dialog.realize();
+            dialog.getModalHeader().css("background-color", color_dict[course.crn]);
+            dialog.open();
         },
         eventMouseover: function (event, jsEvent, view) {
             $(this).css("background-color", color_dict[event.crn]);
@@ -902,9 +923,11 @@ $(function () {
             var isEmpty = $("#tag-content").html() === "";
             if (isEmpty) {
                 $.getJSON("data/bucknell/tag.json", function (tags) {
-                    for (var ccc in tags) {
+                    var sorted_tag_list = Object.keys(tags);
+                    sorted_tag_list.sort();
+                    for (var i = 0; i < sorted_tag_list.length; i++) {
+                        var ccc = sorted_tag_list[i];
                         $("#sidebar").append('<li><a ref=tag-search>' + ccc + '</a></li>');
-
                     }
                     $("[ref=tag-search]").click(function (e) {
                         var tag = $(e.target).text();
@@ -975,7 +998,6 @@ $(function () {
         $("#tag-search-modal").modal('toggle');
     });
 
-
     $("#jump-schedule").click(function () {
         set_current_class_index(parseInt($("#jump-value").val(), 10));
         $('#paging').popover('hide');
@@ -1033,12 +1055,10 @@ $(function () {
         });
     });
     
-    // $("#search-box").keypress(function(){
-    //     $("#upload").hide();
-    // });
+    $( window ).resize(function() {
+        handle_tt_menu();
+        handle_tooltip();
+    });
     
-    if ($(window).width() >= 700) {
-        // enable tooltips
-        $('[data-toggle="tooltip"]').tooltip();
-    }
+    handle_tooltip();
 });
