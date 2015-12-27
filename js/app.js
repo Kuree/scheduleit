@@ -134,7 +134,7 @@ function score_schedule(schedule) {
         }
     }
 
-    var total_negative = negative_score_1 * 5 + negative_score_2 * 5;
+    var total_negative = negative_score_1 * 2 + negative_score_2 * 2;
     // work-around of the bug
     if (total_negative > 80) {
         return 20;
