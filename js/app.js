@@ -1,4 +1,13 @@
-// global variables here
+/* global selected_course */
+/* global course_search_table */
+/* global id_to_crn_dict */
+/* global linked_course_overriden */
+/* global suggestion_list */
+/* global course_description_table */
+/* global color_dict */
+/* global schedule_result */
+/* global current_class_index */
+/* global class_events */
 class_events = [];
 current_class_index = 0;
 schedule_result = [];
@@ -8,6 +17,7 @@ course_search_table = [];
 id_to_crn_dict = {};
 linked_course_overriden = {};
 suggestion_list = {};
+selected_course = {};
 
 // proxy functions for current schedule index
 function set_current_class_index(i) {
@@ -59,7 +69,7 @@ function score_schedule(schedule) {
     // this checks the morning and evening classes
 
     // flatten the time table
-    times = [0, 0, 0, 0, 0]
+    var times = [0, 0, 0, 0, 0]
     for (var i = 0; i < schedule.length; i++) {
         var single_class = schedule[i];
         for (var j = 0; j < single_class.t.length; j++) {
@@ -81,13 +91,13 @@ function score_schedule(schedule) {
         var time = times[i];
         for (var j = 0; j < 32 - 3; j++) {
             var mask = negative_score_2_mask_1 << j;
-            if ((time & mask) == mask) {
+            if ((time & mask) === mask) {
                 negative_score_2++;
             }
         }
         for (var j = 0; j < 32 - 5; j++) {
             var mask = negative_score_2_mask_2 << j;
-            if ((time & mask) == mask) {
+            if ((time & mask) === mask) {
                 negative_score_2++;
             }
         }
@@ -122,7 +132,7 @@ function schedule(selected_course, courses, search_items) {
         course_overriden = $.merge(course_overriden, linked_course_overriden[key]);
     }
     // create a two dimensional array
-    var classes = []
+    var classes = [];
     $.each(selected_course, function(ref_key, entry) {
         classes.push(entry);
         // need to check if l exists
@@ -137,13 +147,13 @@ function schedule(selected_course, courses, search_items) {
                     }
                 }else{
                     classes.push(links);
-                };
+                }
             });
         }
     });
     var result = [];
-    var current_classes = []
-    var available_classes = []
+    var current_classes = [];
+    var available_classes = [];
     $.each(classes, function(index, entry1) {
         var class_entry = [];
         $.each(entry1, function(index2, entry2) {
@@ -196,9 +206,7 @@ function render_star(score) {
     var id = 1
     for (var i = 0; i < score; i += 20) {
         $("#star-" + id.toString()).css({
-            opacity: 1
-        });
-        $("#star-" + id.toString()).css({
+            opacity: 1,
             width: score.toString() + "%"
         });
     }
@@ -206,7 +214,7 @@ function render_star(score) {
 
 function render_schedule(classes) {
     // clear the old reference. Due to the implementation of fullCalendar, it's very clumsy
-    $('#calendar').fullCalendar('removeEventSource', class_events);
+    $("#calendar").fullCalendar('removeEventSource', class_events);
     // marking classes
     var marked_classes = [];
     for (var i = 0; i < classes.length; i++) {
@@ -340,7 +348,7 @@ function setup_typeahead(search_items, tag_items) {
     var courses = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('n'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
-        local: filted_list,
+        local: filted_list
     });
     $('#search .typeahead').typeahead(null, {
         name: 'bucknell-courses',
@@ -387,9 +395,10 @@ function create_description(e, search_items) {
 }
 
 function handle_color_creation(crn_list) {
-    var first_crn = crn_list[0]
+    var first_crn = crn_list[0];
+    var color;
     if (!(first_crn in color_dict)) {
-        var color = Please.make_color({
+        color = Please.make_color({
             format: 'rgb-string'
         });
         for (var i = 0; i < crn_list.length; i++) {
@@ -397,7 +406,7 @@ function handle_color_creation(crn_list) {
             color_dict[crn] = color;
         }
     } else {
-        var color = color_dict[first_crn];
+        color = color_dict[first_crn];
     }
     return color;
 }
@@ -405,8 +414,8 @@ function handle_color_creation(crn_list) {
 function create_label_dropdown(crn_list, id, default_value, is_linked){
     // do a linear search
     // doing as best as I can
-    count = 0;
-    result = "";
+    var count = 0;
+    var result = "";
     var temp_list = {};
     for(var i = 0; i < course_search_table.length && count < crn_list.length; i++){
         var entry = course_search_table[i];
@@ -417,11 +426,11 @@ function create_label_dropdown(crn_list, id, default_value, is_linked){
     }
     result += '<li ref="' + id + '" data-linked="' + (is_linked? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + default_value.replace(" ", "_") + '"><strong>'  + default_value + '</strong></a></li>';
     // sort the temp_list so that it's in alphabetic order
-    sorted_keys = [];
+    var sorted_keys = [];
     for(var key in temp_list){
         sorted_keys.push(key);
     }
-    sorted_keys.sort(function(a, b) { return temp_list[a] > temp_list[b];});
+    sorted_keys.sort(function(a, b) { return (temp_list[a] > temp_list[b]) ? 1 : -1;});
     
     for(var i = 0; i < sorted_keys.length; i++){
         var key = sorted_keys[i];
@@ -432,17 +441,21 @@ function create_label_dropdown(crn_list, id, default_value, is_linked){
 }
 
 // function returns a dictionary {id:html}
-function create_label_for_class(random_id_main, suggestion){
+function create_label_for_class(random_id_main, suggestion, supress_link){
     var result = {};
     // add colors
     var color = handle_color_creation(suggestion.crn);
-    if(!(random_id_main in id_to_crn_dict)) { id_to_crn_dict[random_id_main] = suggestion.crn;}
-    var html_main = '<div class="dropdown" style="display:inline" ref="' + random_id_main +'"><span class="tag label label-info dropdown-toggle" data-toggle="dropdown" id="' + random_id_main + '" style="background-color:' + color + '">' + (suggestion.nn? suggestion.nn: suggestion.n) + '<a class="remove fa fa-times"></a></span><ul class="dropdown-menu  session-dropdown" style="background-color:' + color + ';"id="drop-' + random_id_main +'">';
-        
+    if (!(random_id_main in id_to_crn_dict)) { id_to_crn_dict[random_id_main] = suggestion.crn; }
+    // check whether the entry to add is a linked list
+    var is_linked = (typeof suggestion.is_l) !== "undefined";
+    var html_main = '<div class="dropdown" style="display:inline" ref="' + random_id_main +'"><span class="tag label label-info dropdown-toggle" data-toggle="dropdown" id="' + random_id_main + '" style="background-color:' + color + '">' 
+    + (suggestion.nn? suggestion.nn: suggestion.n) +  (is_linked? "" : '<a class="remove fa fa-times">') + '</a></span><ul class="dropdown-menu  session-dropdown" style="background-color:' + color + ';"id="drop-' + random_id_main +'">';
+    
     html_main += create_label_dropdown(suggestion.crn, random_id_main, (suggestion.nn? suggestion.nn: suggestion.n), false);
     
     html_main +="</ul></div>";
     result[random_id_main] = html_main;
+    if(is_linked || supress_link) { return result; }
     if (suggestion.l && Object.keys(suggestion.l).length > 0) {
         $.each(suggestion.l, function(key, value) {
             var l_color = handle_color_creation(value);
@@ -464,56 +477,71 @@ function create_label_for_class(random_id_main, suggestion){
     return result;
 }
 
+function get_search_entry_from_crn(crn){
+    for(var i = 0; i < course_search_table.length; i++){
+        if(course_search_table[i].n === crn){
+            return course_search_table[i];
+        }
+    }
+}
+
+
+function add_class_entry_to_selected(entry, supress_link){
+    var random_id = guidGenerator();
+    suggestion_list[random_id] = entry;
+    var result = create_label_for_class(random_id, entry, supress_link);
+    for(var key in result){
+        var html = result[key];
+        $(html).appendTo($('#course-selection')).hide().fadeIn(600);
+        
+        // toggle the drop down
+        $("#key").dropdown();
+    }
+    // add event listener
+    $(document).on("click", "[ref=session_switch]", function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var text = $(e.target).text();
+        var a = $(e.target).parent();
+        var li = a.parent();
+        var is_linked = li.attr("data-linked") === "yes";
+        var crn = $(this).attr("id");
+        var ref = $(this).parent().attr("ref");
+        if(isNaN(crn)){
+            // original course number
+            if(is_linked){
+                delete linked_course_overriden[ref];
+            }
+            else{
+                selected_course[ref] = suggestion_list[ref].crn;
+            }
+        }else{
+            if(is_linked){
+                // add to overridden linked list 
+                linked_course_overriden[ref] = [crn];
+            }
+            else{
+                selected_course[ref] = [crn];
+            }
+        }
+        
+        // change the label text
+        var id = li.attr("ref");
+        $("#" + id).text(text).fadeIn(200);
+        
+        
+    });
+
+    // add it to the selected courses if it's not a linked list
+    if(typeof(entry.is_l) === "undefined"){
+        selected_course[random_id] = entry.crn;
+    }
+}
+
 function handle_selection(selected_course) {
     $('#search .typeahead').bind('typeahead:select', function(ev, suggestion) {
-        var random_id = guidGenerator();
-        suggestion_list[random_id] = suggestion;
-        var result = create_label_for_class(random_id, suggestion);
-        for(var key in result){
-            var html = result[key];
-            $(html).appendTo($('#course-selection')).hide().fadeIn(600);
-            
-            // toggle the drop down
-            $("#key").dropdown();
-        }
-        // add event listener
-        $(document).on("click", "[ref=session_switch]", function(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            var text = $(e.target).text();
-            var a = $(e.target).parent();
-            var li = a.parent();
-            var is_linked = li.attr("data-linked") === "yes";
-            var crn = $(this).attr("id");
-            var ref = $(this).parent().attr("ref");
-            if(isNaN(crn)){
-                // original course number
-                if(is_linked){
-                    delete linked_course_overriden[ref];
-                }
-                else{
-                    selected_course[ref] = suggestion_list[ref].crn;
-                }
-            }else{
-                if(is_linked){
-                    // add to overridden linked list 
-                    linked_course_overriden[ref] = [crn];
-                }
-                else{
-                    selected_course[ref] = [crn];
-                }
-            }
-            
-            // change the label text
-            var id = li.attr("ref");
-            $("#" + id).text(text).fadeIn(200);
-            
-            
-        });
-        
-        // add it to the selected courses
-        selected_course[random_id] = suggestion.crn;
+        add_class_entry_to_selected(suggestion, false);
 
         // clear the search input
         $('.typeahead').typeahead('val', '');
@@ -675,7 +703,7 @@ $(function() {
 
                 });
             }
-        })
+        });
 
         setup_typeahead(search_items);
         search_list = search_items;
@@ -714,7 +742,7 @@ $(function() {
 
     $("#download").click(function() {
         var classes = schedule_result[current_class_index];
-        url = "download.html?";
+        var url = "download.html?";
         for (var i = 0; i < classes.length; i++) {
             var key = classes[i].crn;
             url += key + "=" + key + "&"
@@ -772,6 +800,83 @@ $(function() {
     $("#toggle-web-tour").click(function() {
         tour.start(true);
     });
+    
+    // test the schedule storage
+    if(!localStorage.getItem("storage")){
+        $("#upload").hide();
+    } else {
+        var raw_class_list = localStorage.getItem("storage");
+        var class_list = JSON.parse(raw_class_list);
+        if (Object.keys(class_list).length === 0) {
+            $("#upload").hide();
+            return;
+        }
+        $("#upload").click(function(){
+            $("#course-upload-table").empty();
+            var raw_class_list = localStorage.getItem("storage");
+            var class_list = JSON.parse(raw_class_list);
+            if (Object.keys(class_list).length === 0) {
+                $("#upload").hide();
+                return;
+            }
+            var raw_html = "";
+            for(var name in class_list){
+                var classes = class_list[name];
+                raw_html += "<tr><td>" + name + "</td><td>";
+                var temp = "";
+                for(var j = 0; j < classes.length; j++){
+                    temp += course_description_table[classes[j]].n + "; " + (j % 3 == 2 && j != classes.length - 1 ? "<br>" : "");
+                }
+                raw_html += temp.substring(0, temp.length - 2) + "</td>";
+                var id = 'schedule-' + name;
+                raw_html += '<td><a><i id="' + id + '" class="fa fa-upload upload-icon"></i></a><a><i style="color:red; position:relative; left:1vw" ref="' 
+                + id + '"class="fa fa-times upload-delete-icon"></i></a></td></tr>';
+            }
+            $("#course-upload-table").append(raw_html);
+            
+            // set up the events
+            $(".upload-icon").click(function(){
+                var id = $(this).attr("id");
+                var name = id.replace(id.split("-")[0] + "-", "");
+                // JS scoping problem
+                var load_classes = JSON.parse(localStorage.getItem("storage"));
+                var load_class = load_classes.name;
+                for(var i = 0; i < load_class.length; i++){
+                    var entry = get_search_entry_from_crn(load_class[i]);
+                    // add it to the overriden list
+                    if(entry.is_l){
+                        var random_id = guidGenerator();
+                        linked_course_overriden[random_id] = [load_class[i]];
+                    }
+                    add_class_entry_to_selected(entry, true);
+                }
+                $('#load-modal').modal("hide");
+            });
+            
+            $(".upload-delete-icon").click(function(){
+                // re-consider the implementation.
+                // consiering move it to global variable
+                var id = $(this).attr("ref");
+                var name = id.replace(id.split("-")[0] + "-", "");
+                var load_classes = JSON.parse(localStorage.getItem("storage"));
+                delete load_classes[name];
+                localStorage.setItem("storage", JSON.stringify(load_classes));
+                $('#load-modal').modal("hide");
+                $(this).closest("tr").fadeOut(400).remove();
+                if(Object.keys(load_classes).length === 0){
+                    $("#upload").hide();
+                }
+            });
+            
+            // show the modal
+            $('#load-modal').modal("show");
+        });
+    }
+    
+    $("#search-box").keypress(function(){
+        $("#upload").hide();
+    });
+    
     if ($(window).width() > 700) {
         // enable tooltips
         $('[data-toggle="tooltip"]').tooltip();

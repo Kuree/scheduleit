@@ -140,7 +140,16 @@ http://www.colourlovers.com/palette/580974/Adrift_in_Dreams
 
 #search-button{
     background-color: #3B8686;
-    border-color: #3B8686
+    border-color: #3B8686;
+}
+
+#upload{
+    background-color: #79BD9A;
+    border-color: #79BD9A;
+}
+
+.borderless tbody tr td, .borderless tbody tr th, .borderless thead tr th {
+    border: none;
 }
 
 /*fix the bootstrap bug*/
@@ -220,6 +229,8 @@ a {
     margin-top : 1vh;
 }
 
+
+
 /*scrollbar*/
 ::-webkit-scrollbar {
 	width: 7px;
@@ -229,7 +240,7 @@ a {
 	height:5px;
 }
 ::-webkit-scrollbar-track {
-	background:#fff;
+	background:transparent;
 }
 ::-webkit-scrollbar-thumb {
 	background:#999;
