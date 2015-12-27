@@ -145,7 +145,10 @@ def process_course_table(course_table):
         if len(new_entry["l"]) > 0:
             search_result.append({"n" : crn, "l" : new_entry["l"], "crn" : [crn], "nn" : new_entry["n"]})
         else:
-            search_result.append({"n" : crn, "crn" : [crn], "nn" : new_entry["n"]})
+            if is_linked_list:
+                search_result.append({"n" : crn, "crn" : [crn], "is_l" : is_linked_list, "nn" : new_entry["n"]})
+            else:
+                search_result.append({"n" : crn, "crn" : [crn], "nn" : new_entry["n"]})
         existing_list = [x for x in search_result if x["n"] == name]
         
         if len(existing_list) == 0:
