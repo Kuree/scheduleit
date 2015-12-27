@@ -195,9 +195,7 @@ function handle_schedule_render() {
     render_star(schedule_result[current_class_index].score);
 
     $("#schedule-row").fadeIn(1500);
-    $('#calendar').show('fade', {
-        queue: false
-    }, 1500).fullCalendar('render');
+    $('#calendar').fadeIn(1500).fullCalendar('render');
     render_schedule(schedule_result[current_class_index]);
 
 }
@@ -809,7 +807,6 @@ $(function() {
         var class_list = JSON.parse(raw_class_list);
         if (Object.keys(class_list).length === 0) {
             $("#upload").hide();
-            return;
         }
         $("#upload").click(function(){
             $("#course-upload-table").empty();
@@ -873,12 +870,48 @@ $(function() {
         });
     }
     
-    $("#search-box").keypress(function(){
-        $("#upload").hide();
+    $("#save-schedule").click(function(){
+         BootstrapDialog.show({
+             message: 'Please enter the name for your schedule: <input type="text" class="form-control">',
+             onhide: function (dialogRef) {
+                 var name = dialogRef.getModalBody().find('input').val();
+                 if ($.trim(name).length === 0) {
+                     return false;
+                 }
+             },
+             buttons: [{
+                 label: 'OK',
+                 action: function (dialogRef) {
+                     var name = dialogRef.getModalBody().find('input').val();
+                     var classes = schedule_result[current_class_index];
+                     var class_list = [];
+                     for (var i = 0; i < classes.length; i++) {
+                        class_list.push(classes[i].crn);
+                    }
+                     // save to browser
+                     // pop up to enter the name
+                     var str_storage = localStorage.getItem("storage");
+                     var storage = JSON.parse(str_storage);
+                     if ((typeof storage === "undefined") || (storage == null)) {
+                         storage = {};
+                     }
+                     storage[name] = class_list;
+                     localStorage.setItem("storage", JSON.stringify(storage));
+
+                     dialogRef.close();
+                     
+                     $("#upload").fadeIn(300);
+                 }
+             }]
+         });
     });
     
-    if ($(window).width() > 700) {
+    // $("#search-box").keypress(function(){
+    //     $("#upload").hide();
+    // });
+    
+    if ($(window).width() >= 700) {
         // enable tooltips
         $('[data-toggle="tooltip"]').tooltip();
-    }
+    };
 });
