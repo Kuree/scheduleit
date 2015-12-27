@@ -260,7 +260,10 @@ function render_star(score) {
         });
     }
 }
-
+/**
+ * Render the classes produced by the scheduling algorithm
+ * @param  {array} classes
+ */
 function render_schedule(classes) {
     // clear the old reference. Due to the implementation of fullCalendar, it's very clumsy
     $("#calendar").fullCalendar('removeEventSource', class_events);
@@ -331,6 +334,10 @@ function render_schedule(classes) {
     $('#calendar').fullCalendar('addEventSource', class_events);
 }
 
+/**
+ * Returns a shallow copy of an array
+ * @param  {array} old_array - old array to be copied
+ */
 function copy_array(old_array) {
     // this does shallow copy of an array
     var result = [];
@@ -340,6 +347,11 @@ function copy_array(old_array) {
     return result;
 }
 
+/**
+ * Adding an item to an array without duplication. Use a static/global cache to change a O(n^2) algorithm to O(n)
+ * @param  {array} result - the array to be added to
+ * @param  {object} entry - the item to add
+ */
 function add_to_array_without_dup(result, entry){
     // this is a modified N * M search
     // using previous result to speed up
@@ -358,7 +370,12 @@ function add_to_array_without_dup(result, entry){
 
 }
 
-// this is recursive call with dynamic programming fashion
+/**
+ * The basic uint of function in the core scheduling algorithm. It is indeed a modified dynamic programming
+ * @param  {array} current_classes - the current tree-branch that's added into the algorithm
+ * @param  {array} remaining_classes - the remaining classes to be added to the scheduling algorithm
+ * @param  {array} result - the scheduling result. two dimensional array
+ */
 function select_course(current_classes, remaining_classes, result) {
     if (remaining_classes.length === 0) {
         // a valid choice
@@ -388,7 +405,9 @@ function select_course(current_classes, remaining_classes, result) {
     }
 }
 
+
 function is_single_class_conflicted(class1, class2) {
+    // bitwise operation to check the time schedule conflicts
     var time1 = class1.t;
     var time2 = class2.t;
     for (var i = 0; i < 5; i++) {
@@ -400,6 +419,7 @@ function is_single_class_conflicted(class1, class2) {
 }
 
 function is_new_class_conflicted(classes, new_class) {
+    // used to tell whether the new claass is conflicted with the current schedule
     for (var i = 0; i < classes.length; i++) {
         if (is_single_class_conflicted(classes[i], new_class)) {
             return true;
@@ -408,7 +428,11 @@ function is_new_class_conflicted(classes, new_class) {
     return false;
 }
 
-function setup_typeahead(search_items, tag_items) {
+/**
+ * Set up twitter typeahead with the given search item
+ * @param  {array} search_items - array object to be displayed in the type script
+ */
+function setup_typeahead(search_items) {
     var filted_list = $.grep(search_items, function (entry) {
         return entry.is_l !== true;
     });
@@ -442,6 +466,11 @@ function setup_typeahead(search_items, tag_items) {
     handle_tt_menu();
 }
 
+
+/**
+ * local storage helper functions. To avoide any storage loss or unsync, any operations will
+ * save the result back to the local storage.
+ */
 function get_local_classes() {
     var str_storage = localStorage.getItem("storage");
     var storage = JSON.parse(str_storage);
@@ -467,6 +496,14 @@ function remove_local_class(name) {
     localStorage.setItem("storage", JSON.stringify(storage));
 }
 
+// helper funcitons ends here
+
+
+/**
+ * Create description for twitter typeahead.
+ * @param  {object} e - the twitter typeahead event object
+ * @param  {array} search_items - array used to generate the twitter typeahead
+ */
 function create_description(e, search_items) {
     if (e.d) {
         return '<div><strong>' + e.n + ': ' + e.ti + '</strong> <br> ' + e.d + '</div>';
@@ -485,6 +522,11 @@ function create_description(e, search_items) {
     }
 }
 
+/**
+ * Create a color for the given class. For consistence reason, if the class is used before,
+ * It will return the old color.
+ * @param  {array} crn_list - crn list to be assigned to color
+ */
 function handle_color_creation(crn_list) {
     var first_crn = crn_list[0];
     var color;
@@ -502,6 +544,13 @@ function handle_color_creation(crn_list) {
     return color;
 }
 
+/**
+ * Returns the raw html code for creating the label dropdown
+ * @param  {array} crn_list - crn list for dropdown switch
+ * @param  {number} id - the id used to generate the dropdown
+ * @param  {any} default_value - the original class name in case the user need to go back the full options.
+ * @param  {boolean} is_linked - if set true, if will label the dropdown as linked
+ */
 function create_label_dropdown(crn_list, id, default_value, is_linked) {
     // do a linear search
     // doing as best as I can
