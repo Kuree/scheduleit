@@ -23,7 +23,7 @@ selected_course = {};
 function set_current_class_index(i) {
     current_class_index = i;
     // check all the boundaries
-    $("#show-left").prop("disabled", current_class_index == 0);
+    $("#show-left").prop("disabled", current_class_index === 0);
     $("#show-right").prop("disabled", current_class_index == schedule_result.length - 1);
     $("#paging").text((current_class_index + 1).toString() + " / " + schedule_result.length.toString());
     $("#jump-value").val(i + 1);
@@ -58,18 +58,16 @@ function count_one(x) {
 }
 
 function compare_score(a, b) {
-    if (a.score < b.score)
-        return 1;
-    if (a.score > b.score)
-        return -1;
-    return 0;
+    if (a.score < b.score) { return 1; }
+    else if (a.score > b.score) { return -1; }
+    else { return 0; }
 }
 
 function score_schedule(schedule) {
     // this checks the morning and evening classes
 
     // flatten the time table
-    var times = [0, 0, 0, 0, 0]
+    var times = [0, 0, 0, 0, 0];
     for (var i = 0; i < schedule.length; i++) {
         var single_class = schedule[i];
         for (var j = 0; j < single_class.t.length; j++) {
@@ -79,25 +77,25 @@ function score_schedule(schedule) {
 
     var negative_score_mask = 0xFFF00003;
     var negative_score_1 = 0;
-    for (var i = 0; i < times.length; i++) {
-        negative_score_1 += count_one(times[i] & negative_score_mask);
+    for (var n = 0; n < times.length; n++) {
+        negative_score_1 += count_one(times[n] & negative_score_mask);
     }
 
     // counting for dis-continuity
     var negative_score_2 = 0;
     var negative_score_2_mask_1 = 5; //(101) check if there is a half hour gap between two classes
     var negative_score_2_mask_2 = 9; // (1001) check if there is an one hour gap between two classes
-    for (var i = 0; i < times.length; i++) {
-        var time = times[i];
-        for (var j = 0; j < 32 - 3; j++) {
-            var mask = negative_score_2_mask_1 << j;
-            if ((time & mask) === mask) {
+    for (var k = 0; k < times.length; k++) {
+        var time = times[k];
+        for (var l = 0; l < 32 - 3; l++) {
+            var mask_1 = negative_score_2_mask_1 << l;
+            if ((time & mask_1) === mask_1) {
                 negative_score_2++;
             }
         }
-        for (var j = 0; j < 32 - 5; j++) {
-            var mask = negative_score_2_mask_2 << j;
-            if ((time & mask) === mask) {
+        for (var m = 0; m < 32 - 5; m++) {
+            var mask_2 = negative_score_2_mask_2 << m;
+            if ((time & mask_2) === mask_2) {
                 negative_score_2++;
             }
         }
@@ -172,13 +170,13 @@ function schedule(selected_course, courses, search_items) {
     result.sort(compare_score);
     schedule_result = result;
 
-    if (schedule_result.length == 0) {
+    if (schedule_result.length === 0) {
         $("#schedule-row").hide("slow");
         $(".footer").show("slow");
         BootstrapDialog.alert({
             type: BootstrapDialog.TYPE_WARNING,
             title: "I'm sorry",
-            message: 'There is no available schedule that fits your course selection. Maybe try a different one?',
+            message: 'There is no available schedule that fits your course selection. Maybe try a different one?'
         });
     } else {
         set_current_class_index(0);
@@ -201,7 +199,7 @@ function handle_schedule_render() {
 }
 
 function render_star(score) {
-    var id = 1
+    var id = 1;
     for (var i = 0; i < score; i += 20) {
         $("#star-" + id.toString()).css({
             opacity: 1,
@@ -223,13 +221,13 @@ function render_schedule(classes) {
             var first_hit = 0;
             var day = classes[i].t[j];
             for (var k = 0; k < 28; k++) {
-                if ((day & (1 << k)) != 0) {
+                if ((day & (1 << k)) !== 0) {
                     // has class here
                     if (!has_class) {
                         first_hit = k;
                         has_class = true;
                     }
-                    duration_count += 1
+                    duration_count += 1;
                 } else {
                     if (has_class) {
                         // a class ends
@@ -263,8 +261,8 @@ function render_schedule(classes) {
 
     class_events.length = 0;
 
-    for (var i = 0; i < marked_classes.length; i++) {
-        var marked_class = marked_classes[i];
+    for (var l = 0; l < marked_classes.length; l++) {
+        var marked_class = marked_classes[l];
         var start_time = moment().startOf('isoweek').add(marked_class.day, "d").add(8, "h").add(marked_class.start * 30, "m");
         var class_entry = {
             "title": marked_class.n,
@@ -273,7 +271,7 @@ function render_schedule(classes) {
             "end": moment().startOf('isoweek').add(marked_class.day, "d").add(8, "h").add((marked_class.start + marked_class.duration) * 30 - 5, "m"),
             "crn": marked_class.crn,
             "borderColor": color_dict[marked_class.crn]
-        }
+        };
         class_events.push(class_entry);
     }
 
@@ -291,7 +289,7 @@ function copy_array(old_array) {
 
 // this is recursive call with dynamic programming fashion
 function select_course(current_classes, remaining_classes, result) {
-    if (remaining_classes.length == 0) {
+    if (remaining_classes.length === 0) {
         // a valid choice
         result.push(copy_array(current_classes));
         return;
@@ -307,7 +305,7 @@ function select_course(current_classes, remaining_classes, result) {
         if (!is_new_class_conflicted(current_classes, choice)) {
             // add it to the current list
             // and remove the next class from the remaining_classes
-            current_classes.push(choice)
+            current_classes.push(choice);
             remaining_classes.shift();
             // call the function recursively
             select_course(current_classes, remaining_classes, result);
@@ -323,7 +321,7 @@ function is_single_class_conflicted(class1, class2) {
     var time1 = class1.t;
     var time2 = class2.t;
     for (var i = 0; i < 5; i++) {
-        if ((time1[i] & time2[i]) != 0) {
+        if ((time1[i] & time2[i]) !== 0) {
             return true;
         }
     }
@@ -372,7 +370,30 @@ function setup_typeahead(search_items, tag_items) {
     });
 }
 
+function get_local_classes() {
+    var str_storage = localStorage.getItem("storage");
+    var storage = JSON.parse(str_storage);
+    if ((typeof storage === "undefined") || (storage === null)) {
+        storage = {};
+    }
+    return storage;
+}
 
+function is_local_classes_empty() {
+    return Object.keys(get_local_classes()).length <= 0;
+}
+
+function add_local_classes(name, entry) {
+    var storage = get_local_classes();
+    storage[name] = entry;
+    localStorage.setItem("storage", JSON.stringify(storage));
+}
+
+function remove_local_class(name) {
+    var storage = get_local_classes();
+    delete storage[name];
+    localStorage.setItem("storage", JSON.stringify(storage));
+}
 
 function create_description(e, search_items) {
     if (e.d) {
@@ -430,10 +451,10 @@ function create_label_dropdown(crn_list, id, default_value, is_linked) {
     }
     sorted_keys.sort(function (a, b) { return (temp_list[a] > temp_list[b]) ? 1 : -1; });
 
-    for (var i = 0; i < sorted_keys.length; i++) {
-        var key = sorted_keys[i];
-        var name = temp_list[key];
-        result += '<li ref="' + id + '"data-linked="' + (is_linked ? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + key + '"><strong>' + name + '</strong></a></li>';
+    for (var j = 0; j < sorted_keys.length; j++) {
+        var key_2 = sorted_keys[j];
+        var name = temp_list[key_2];
+        result += '<li ref="' + id + '"data-linked="' + (is_linked ? 'yes' : 'no') + '"><a style="color:white" ref="session_switch" id="' + key_2 + '"><strong>' + name + '</strong></a></li>';
     }
     return result;
 }
@@ -446,8 +467,8 @@ function create_label_for_class(random_id_main, suggestion, supress_link) {
     if (!(random_id_main in id_to_crn_dict)) { id_to_crn_dict[random_id_main] = suggestion.crn; }
     // check whether the entry to add is a linked list
     var is_linked = (typeof suggestion.is_l) !== "undefined";
-    var html_main = '<div class="dropdown" style="display:inline" ref="' + random_id_main + '"><span class="tag label label-info dropdown-toggle" data-toggle="dropdown" id="' + random_id_main + '" style="background-color:' + color + '">'
-        + (suggestion.nn ? suggestion.nn : suggestion.n) + (is_linked ? "" : '<a class="remove fa fa-times">') + '</a></span><ul class="dropdown-menu  session-dropdown" style="background-color:' + color + ';"id="drop-' + random_id_main + '">';
+    var html_main = '<div class="dropdown" style="display:inline" ref="' + random_id_main + '"><span class="tag label label-info dropdown-toggle" data-toggle="dropdown" id="' + random_id_main + '" style="background-color:' + color + '">' +
+        (suggestion.nn ? suggestion.nn : suggestion.n) + (is_linked ? "" : '<a class="remove fa fa-times">') + '</a></span><ul class="dropdown-menu  session-dropdown" style="background-color:' + color + ';"id="drop-' + random_id_main + '">';
 
     html_main += create_label_dropdown(suggestion.crn, random_id_main, (suggestion.nn ? suggestion.nn : suggestion.n), false);
 
@@ -481,6 +502,7 @@ function get_search_entry_from_crn(crn) {
             return course_search_table[i];
         }
     }
+    return null;
 }
 
 
@@ -552,17 +574,17 @@ function generate_course_desp(course_name) {
     if (isNaN(course_name)) {
         // actual course name
         // this way is proven to be faster than $.grep
-        for (var key in course_description_table) {
-            entry = course_description_table[key];
+        for (var key_1 in course_description_table) {
+            entry = course_description_table[key_1];
             if (entry.n == course_name) {
-                crn = key;
+                crn = key_1;
                 break;
             }
         }
         
         // grab the title and description
-        for (var key in course_search_table) {
-            entry2 = course_search_table[key];
+        for (var key_2 in course_search_table) {
+            entry2 = course_search_table[key_2];
             if (entry2.crn.indexOf(crn) >= 0) {
                 break;
             }
@@ -574,7 +596,7 @@ function generate_course_desp(course_name) {
 
     }
     return "<p><b>Title: </b>" + entry2.ti + "</p>" + "<p><b>Instructor: </b>" + entry.i + "</p>" +
-        "<p><b>Description: </b>" + entry2.d + "</p>" + "<p><b>Location: </b>" + (entry.r == "" ? "TBA" : entry.r) + "</p>" +
+        "<p><b>Description: </b>" + entry2.d + "</p>" + "<p><b>Location: </b>" + (entry.r === "" ? "TBA" : entry.r) + "</p>" +
         "<p><b>CRN: </b>" + crn + "</p>";
 }
 
@@ -592,6 +614,64 @@ function create_tag_desc(desc_table, tags, ccc) {
     }
     return result;
 }
+
+function handle_upload() {
+    $("#course-upload-table").empty();
+    if (is_local_classes_empty()) {
+        $("#upload").hide();
+        return;
+    }
+    var raw_html = "";
+    var class_list = get_local_classes();
+    for (var name in class_list) {
+        var classes = class_list[name];
+        raw_html += "<tr><td>" + name + "</td><td>";
+        var temp = "";
+        for (var j = 0; j < classes.length; j++) {
+            temp += course_description_table[classes[j]].n + "; " + (j % 3 == 2 && j != classes.length - 1 ? "<br>" : "");
+        }
+        raw_html += temp.substring(0, temp.length - 2) + "</td>";
+        var id = 'schedule-' + name;
+        raw_html += '<td><a><i id="' + id + '" class="fa fa-upload upload-icon"></i></a><a><i style="color:red; position:relative; left:1vw" ref="' +
+        id + '"class="fa fa-times upload-delete-icon"></i></a></td></tr>';
+    }
+    $("#course-upload-table").append(raw_html);
+            
+    // set up the events
+    $(".upload-icon").click(function () {
+        // JS scoping problem
+        var load_classes = get_local_classes();
+        var id = $(this).attr("id");
+        var name = id.replace(id.split("-")[0] + "-", "");
+        var load_class = load_classes[name];
+        for (var i = 0; i < load_class.length; i++) {
+            var entry = get_search_entry_from_crn(load_class[i]);
+            // add it to the overriden list
+            if (entry.is_l) {
+                var random_id = guidGenerator();
+                linked_course_overriden[random_id] = [load_class[i]];
+            }
+            add_class_entry_to_selected(entry, true);
+        }
+        $('#load-modal').modal("hide");
+    });
+
+    $(".upload-delete-icon").click(function () {
+        // re-consider the implementation.
+        // consiering move it to global variable
+        var ref = $(this).attr("ref");
+        var name = ref.replace(ref.split("-")[0] + "-", "");
+        remove_local_class(name);
+        $(this).closest("tr").fadeOut(400).remove();
+        if (Object.keys(load_classes).length === 0) {
+            $("#upload").hide();
+        }
+    });
+            
+    // show the modal
+    $('#load-modal').modal("show");
+}
+
 
 function create_tour() {
     // Instance the tour
@@ -624,6 +704,35 @@ function create_tour() {
     tour.init();
 
     return tour;
+}
+
+function get_save_name(callback) {
+    var input_name;
+    new BootstrapDialog.show({
+        title: 'Give it a name so that Ninja can remember it',
+        message: 'Please enter the name for your schedule: <input type="text" class="form-control">',
+        closable: false,
+        onhide: function (dialogRef) {
+            var name = dialogRef.getModalBody().find('input').val();
+            if ($.trim(name).length === 0) {
+                return false;
+            }
+        },
+        buttons: [{
+            label: 'OK',
+            action: function (dialogRef) {
+                input_name = dialogRef.getModalBody().find('input').val();
+                dialogRef.close();
+                callback(input_name);
+            }
+        },
+            {
+                label: "Cancel",
+                action: function (dialogRef) {
+                    dialogRef.close();
+                }
+            }]
+    });
 }
 
 $(function () {
@@ -663,7 +772,7 @@ $(function () {
         },
         eventMouseout: function (event, jsEvent, view) {
             $(this).css("background-color", "white");
-        },
+        }
     });
     $('#calendar').fullCalendar('addEventSource', class_events);
 
@@ -714,11 +823,11 @@ $(function () {
         course_description_table = data;
 
         $('#search-button').click(function () {
-            if (Object.keys(selected_course).length == 0) {
+            if (Object.keys(selected_course).length === 0) {
                 BootstrapDialog.alert({
                     type: BootstrapDialog.TYPE_WARNING,
                     title: "Warning",
-                    message: 'Please select as least one course to schedule.',
+                    message: 'Please select as least one course to schedule.'
                 });
 
             } else {
@@ -760,7 +869,7 @@ $(function () {
 
 
     $("#jump-schedule").click(function () {
-        set_current_class_index(parseInt($("#jump-value").val()));
+        set_current_class_index(parseInt($("#jump-value").val(), 10));
         $('#paging').popover('hide');
     });
 
@@ -772,7 +881,7 @@ $(function () {
         content: function () {
             return $("#jump-content").html();
         },
-        placement: "bottom",
+        placement: "bottom"
     });
     // fix for https://github.com/twbs/bootstrap/issues/16732
     $('body').on('hidden.bs.popover', function (e) {
@@ -781,8 +890,8 @@ $(function () {
 
     $(document).on("click", "#jump-schedule", function (e) {
         if (!isNaN($("#jump-value").val())) {
-            var val = parseInt($("#jump-value").val());
-            var max_val = parseInt($("#jump-value").attr("data-max"));
+            var val = parseInt($("#jump-value").val(), 10);
+            var max_val = parseInt($("#jump-value").attr("data-max"), 10);
             if (val <= max_val && val > 0) {
                 set_current_class_index(val - 1);
             }
@@ -798,111 +907,26 @@ $(function () {
     $("#toggle-web-tour").click(function () {
         tour.start(true);
     });
-    
-    // test the schedule storage
-    if (!localStorage.getItem("storage")) {
-        $("#upload").hide();
-    } else {
-        var raw_class_list = localStorage.getItem("storage");
-        var class_list = JSON.parse(raw_class_list);
-        if (Object.keys(class_list).length === 0) {
-            $("#upload").hide();
-        }
-        $("#upload").click(function () {
-            $("#course-upload-table").empty();
-            var raw_class_list = localStorage.getItem("storage");
-            var class_list = JSON.parse(raw_class_list);
-            if (Object.keys(class_list).length === 0) {
-                $("#upload").hide();
-                return;
-            }
-            var raw_html = "";
-            for (var name in class_list) {
-                var classes = class_list[name];
-                raw_html += "<tr><td>" + name + "</td><td>";
-                var temp = "";
-                for (var j = 0; j < classes.length; j++) {
-                    temp += course_description_table[classes[j]].n + "; " + (j % 3 == 2 && j != classes.length - 1 ? "<br>" : "");
-                }
-                raw_html += temp.substring(0, temp.length - 2) + "</td>";
-                var id = 'schedule-' + name;
-                raw_html += '<td><a><i id="' + id + '" class="fa fa-upload upload-icon"></i></a><a><i style="color:red; position:relative; left:1vw" ref="'
-                + id + '"class="fa fa-times upload-delete-icon"></i></a></td></tr>';
-            }
-            $("#course-upload-table").append(raw_html);
-            
-            // set up the events
-            $(".upload-icon").click(function () {
-                var id = $(this).attr("id");
-                var name = id.replace(id.split("-")[0] + "-", "");
-                // JS scoping problem
-                var load_classes = JSON.parse(localStorage.getItem("storage"));
-                var load_class = load_classes.name;
-                for (var i = 0; i < load_class.length; i++) {
-                    var entry = get_search_entry_from_crn(load_class[i]);
-                    // add it to the overriden list
-                    if (entry.is_l) {
-                        var random_id = guidGenerator();
-                        linked_course_overriden[random_id] = [load_class[i]];
-                    }
-                    add_class_entry_to_selected(entry, true);
-                }
-                $('#load-modal').modal("hide");
-            });
 
-            $(".upload-delete-icon").click(function () {
-                // re-consider the implementation.
-                // consiering move it to global variable
-                var id = $(this).attr("ref");
-                var name = id.replace(id.split("-")[0] + "-", "");
-                var load_classes = JSON.parse(localStorage.getItem("storage"));
-                delete load_classes[name];
-                localStorage.setItem("storage", JSON.stringify(load_classes));
-                $('#load-modal').modal("hide");
-                $(this).closest("tr").fadeOut(400).remove();
-                if (Object.keys(load_classes).length === 0) {
-                    $("#upload").hide();
-                }
-            });
-            
-            // show the modal
-            $('#load-modal').modal("show");
-        });
+
+
+    if (is_local_classes_empty()) {
+        $("#upload").hide();
     }
 
+    $("#upload").click(function () {
+        handle_upload();
+    });
+
     $("#save-schedule").click(function () {
-        BootstrapDialog.show({
-            message: 'Please enter the name for your schedule: <input type="text" class="form-control">',
-            onhide: function (dialogRef) {
-                var name = dialogRef.getModalBody().find('input').val();
-                if ($.trim(name).length === 0) {
-                    return false;
-                }
-            },
-            buttons: [{
-                label: 'OK',
-                action: function (dialogRef) {
-                    var name = dialogRef.getModalBody().find('input').val();
-                    var classes = schedule_result[current_class_index];
-                    var class_list = [];
-                    for (var i = 0; i < classes.length; i++) {
-                        class_list.push(classes[i].crn);
-                    }
-                    // save to browser
-                    // pop up to enter the name
-                    var str_storage = localStorage.getItem("storage");
-                    var storage = JSON.parse(str_storage);
-                    if ((typeof storage === "undefined") || (storage == null)) {
-                        storage = {};
-                    }
-                    storage[name] = class_list;
-                    localStorage.setItem("storage", JSON.stringify(storage));
-
-                    dialogRef.close();
-
-                    $("#upload").fadeIn(300);
-                }
-            }]
+        get_save_name(function (name) {
+            var classes = schedule_result[current_class_index];
+            var class_list = [];
+            for (var i = 0; i < classes.length; i++) {
+                class_list.push(classes[i].crn);
+            }
+            add_local_classes(name, class_list);
+            $("#upload").fadeIn(300);
         });
     });
     
@@ -913,5 +937,5 @@ $(function () {
     if ($(window).width() >= 700) {
         // enable tooltips
         $('[data-toggle="tooltip"]').tooltip();
-    };
+    }
 });
