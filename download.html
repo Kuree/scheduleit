@@ -70,21 +70,9 @@
                 },
                 buttons: [{
                     label: 'OK',
-                    action: function(dialogRef) {
+                    action: function (dialogRef) {
                         var name = dialogRef.getModalBody().find('input').val();
-                        if(id !== "browser"){
-                            $('#course-table').tableExport({type:id, fileName: name}); //, tableName : name});
-                        } else {
-                            // save to browser
-                            // pop up to enter the name
-                            var str_storage = localStorage.getItem("storage");
-                            var storage = JSON.parse(str_storage);
-                            if((typeof storage === "undefined") || (storage == null)){
-                                storage = {};
-                            }
-                            storage[name] = class_list;
-                            localStorage.setItem("storage", JSON.stringify(storage));
-                        }
+                        $('#course-table').tableExport({ type: id, fileName: name });
                         dialogRef.close();
                     }
                 }]
@@ -113,7 +101,6 @@
                         <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a href="#" class="download" id="browser">Save to Browser</a></li>
                             <li><a href="#" class="download" id="pdf">PDF</a></li>
                             <li><a href="#" class="download" id="excel">MS-Excel</a></li>
                             <li><a href="#" class="download" id="word">MS-Word</a></li>
