@@ -75,6 +75,21 @@ function compare_score(a, b) {
     else { return 0; }
 }
 
+function is_in_linked_list(entry, item){
+    if(typeof entry === "undefined"){
+        return false;
+    }
+    for(key in entry){
+        var array = entry[key]
+        for(var i = 0; i < array.length; i++){
+            if(array[i] === item){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /**
  * Returns the score of the schedule
  * Note: currently it has two cases: 1. morning classes 2. half-hour or one hour gap
@@ -516,7 +531,7 @@ function create_label_dropdown(crn_list, id, default_value, is_linked) {
 }
 
 // function returns a dictionary {id:html}
-function create_label_for_class(random_id_main, suggestion, supress_link) {
+function create_label_for_class(random_id_main, suggestion, supress_link, r_id) {
     var result = {};
     // add colors
     var color = handle_color_creation(suggestion.crn);
@@ -535,7 +550,7 @@ function create_label_for_class(random_id_main, suggestion, supress_link) {
         $.each(suggestion.l, function (key, value) {
             var l_color = handle_color_creation(value);
             var tooltip = suggestion.n + " requires " + key;
-            var link_random_id = guidGenerator();
+            var link_random_id = (r_id === null) ? guidGenerator() : r_id;
             if (!(link_random_id in id_to_crn_dict)) { id_to_crn_dict[link_random_id] = value; }
             var link_html = '<div class="dropdown" style="display:inline"' + '" ref="' + random_id_main + '"><span style="background-color:' + l_color + '" class="tag label label-info dropdown-toggle" data-toggle="dropdown" data-placement="bottom" title="' + tooltip + '" id="' + link_random_id + '">' + key + '</span><ul class="dropdown-menu session-dropdown" style="background-color:' + l_color + ';"id="drop-' + link_random_id + '">';
             link_html += create_label_dropdown(value, link_random_id, key, true);
@@ -562,10 +577,11 @@ function get_search_entry_from_crn(crn) {
 }
 
 
-function add_class_entry_to_selected(entry, supress_link) {
-    var random_id = guidGenerator();
+function add_class_entry_to_selected(entry, supress_link, r_id = null) {
+    // if r_id is specified, it will force to use that id for all elements
+    var random_id = (r_id === null) ? guidGenerator() : r_id;
     suggestion_list[random_id] = entry;
-    var result = create_label_for_class(random_id, entry, supress_link);
+    var result = create_label_for_class(random_id, entry, supress_link, r_id);
     for (var key in result) {
         var html = result[key];
         $(html).appendTo($('#course-selection')).hide().fadeIn(600);
@@ -699,14 +715,46 @@ function handle_upload() {
         var id = $(this).attr("id");
         var name = id.replace(id.split("-")[0] + "-", "");
         var load_class = load_classes[name];
-        for (var i = 0; i < load_class.length; i++) {
-            var entry = get_search_entry_from_crn(load_class[i]);
+        var entry_list = [];
+        for(var i = 0; i < load_class.length; i++){
+            entry_list.push(get_search_entry_from_crn(load_class[i]));
+        }
+        var class_result = {};
+        var has_used = false;
+        for (var j = 0; j < entry_list.length; j++) {
+            var entry = entry_list[j];
             // add it to the overriden list
             if (entry.is_l) {
                 var random_id = guidGenerator();
-                linked_course_overriden[random_id] = [load_class[i]];
+                linked_course_overriden[random_id] = [load_class[j]];
+                // find its parent
+                entry.parent = null;
+                for(var k = 0; k < entry_list.length; k++){
+                    if(is_in_linked_list(entry_list[k].l, load_class[j])){
+                        has_used = true;
+                        if(Object.keys(class_result).indexOf(k.toString()) >= 0){
+                            class_result[k].push(entry);
+                        } else {
+                            class_result[k] = [entry];
+                        }
+                    }
+                }
             }
-            add_class_entry_to_selected(entry, true);
+            if(!has_used){
+                if(Object.keys(class_result).indexOf(j.toString()) < 0){
+                    class_result[j] = [];
+                }
+            }
+            // reset the flag
+            has_used = false;
+            
+        }
+        for(var key in class_result){
+            var r_id = guidGenerator();
+            add_class_entry_to_selected(entry_list[key], true, r_id);
+            for(var l = 0; l < class_result[key].length; l++){
+                add_class_entry_to_selected(class_result[key][l], true, r_id);
+            }
         }
         $('#load-modal').modal("hide");
     });
