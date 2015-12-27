@@ -767,11 +767,10 @@ function get_save_name(callback) {
         title: 'Give it a name so that Ninja can remember it',
         message: 'Please enter the name for your schedule: <input type="text" class="form-control">',
         closable: false,
+        data : {canCancel : false},
         onhide: function (dialogRef) {
             var name = dialogRef.getModalBody().find('input').val();
-            if ($.trim(name).length === 0) {
-                return false;
-            }
+            return dialogRef.getData("canCancel") || (!($.trim(name).length === 0));
         },
         buttons: [{
             label: 'OK',
@@ -784,6 +783,7 @@ function get_save_name(callback) {
             {
                 label: "Cancel",
                 action: function (dialogRef) {
+                    dialogRef.setData("canCancel", true);
                     dialogRef.close();
                 }
             }]
