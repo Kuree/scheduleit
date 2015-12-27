@@ -839,6 +839,11 @@ function get_save_name(callback) {
 }
 
 $(function () {
+    // hide UI item first
+    if (is_local_classes_empty()) {
+        $("#upload").hide();
+    }
+    
     // download the search_items
     var search_list = [];
     $('#calendar').fullCalendar({
@@ -1011,11 +1016,6 @@ $(function () {
         tour.start(true);
     });
 
-
-
-    if (is_local_classes_empty()) {
-        $("#upload").hide();
-    }
 
     $("#upload").click(function () {
         handle_upload();
