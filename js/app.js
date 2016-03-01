@@ -708,7 +708,8 @@ function handle_selection(selected_course) {
 function generate_course_from_name(course_name) {
     var entry, entry2;
     var crn;
-    if (isNaN(course_name)) {
+	var test_name = Number(course_name);
+    if (isNaN(test_name)) {
         // actual course name
         // this way is proven to be faster than $.grep
         for (var key_1 in course_description_table) {
@@ -722,7 +723,7 @@ function generate_course_from_name(course_name) {
         // grab the title and description
         for (var key_2 in course_search_table) {
             entry2 = course_search_table[key_2];
-            if (entry2.crn.indexOf(crn) >= 0) {
+            if (entry2.crn.indexOf(crn) >= 0 && entry2.ti) {
                 break;
             }
         }
@@ -730,7 +731,13 @@ function generate_course_from_name(course_name) {
     } else {
         entry = course_description_table[course_name];
         crn = course_name;
-
+		// grab the title and description
+        for (var key_2 in course_search_table) {
+            entry2 = course_search_table[key_2];
+            if (entry2.crn.indexOf(crn) >= 0 && entry2.ti) {
+                break;
+            }
+        }
     }
     return {"crn" : crn, "html" : "<p><b>Title: </b>" + entry2.ti + "</p>" + "<p><b>Instructor: </b>" + entry.i + "</p>" +
         "<p><b>Description: </b>" + entry2.d + "</p>" + "<p><b>Location: </b>" + (entry.r === "" ? "TBA" : entry.r) + "</p>" +
@@ -936,7 +943,7 @@ $(function () {
         },
         eventClick: function (calEvent, jsEvent, view) {
             var course_name = calEvent.title;
-            var course = generate_course_from_name(course_name);
+            var course = generate_course_from_name(calEvent.title);
             var dialog = new BootstrapDialog({
                 title: course_name,
                 message: course.html
