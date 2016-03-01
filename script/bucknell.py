@@ -37,6 +37,10 @@ def parse_raw_hour(raw_time):
     start_hour = start_time.tm_hour + (0 if start_time.tm_min == 0 else 0.5)
     start_bit = int((start_hour - 8) * 2)
     result = 0
+    if start_bit < 0:
+        # the school messed up the am/pm
+        start_hour += 12
+        start_bit = int((start_hour - 8) * 2)
     for i in range(time_range):
         result |= (1 << (start_bit + i))
     return result;
@@ -97,7 +101,6 @@ def process_course_table(course_table):
         if time_entry == "":
             continue
         new_entry["t"] = parse_meeting_time(time_entry) if time_entry != "TBA" else [0, 0, 0, 0, 0]
-        
         crn = course_entry["CRN"]
         
         # add search tag
@@ -205,7 +208,7 @@ def main():
             payload = {
                 'lookopt' : 'DPT',
                 'frstopt' : '',
-                'term' : '201605',
+                'term' : '201701',
                 'param1' : dept,
                 'openopt' : 'ALL'}
             r_form = requests.post("https://www.bannerssb.bucknell.edu/ERPPRD/hwzkschd.P_Bucknell_SchedDisplay", 
@@ -250,7 +253,7 @@ def main():
                 
                 # get description
                 course_number = entry_dic["Course"].split()[1]
-                desc = get_desc('201605', dept, course_number)
+                desc = get_desc('201701', dept, course_number)
                 entry_dic["desc"] = desc
                 dept_table.append(entry_dic)
                 
