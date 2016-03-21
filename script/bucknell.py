@@ -26,7 +26,12 @@ def parse_raw_hour(raw_time):
         return 0
     start_time_raw = time_range[0]
     end_time_raw = time_range[1]
-    start_time_raw += end_time_raw[-2:]
+	# very special case here
+	# see issue #11
+    if end_time_raw[:2] == "12" and start_time_raw[:2] == "11":
+        start_time_raw += "am"
+    else:
+        start_time_raw += end_time_raw[-2:]
     # for bucknell, end times are always 22 or 52
     start_time = time.strptime(start_time_raw, "%I:%M%p")
     end_time = time.strptime(end_time_raw, "%I:%M%p")
@@ -205,7 +210,7 @@ def main():
             payload = {
                 'lookopt' : 'DPT',
                 'frstopt' : '',
-                'term' : '201605',
+                'term' : '201701',
                 'param1' : dept,
                 'openopt' : 'ALL'}
             r_form = requests.post("https://www.bannerssb.bucknell.edu/ERPPRD/hwzkschd.P_Bucknell_SchedDisplay", 
@@ -215,7 +220,7 @@ def main():
             # TODO:
             # one thing to notice is that even if you query an invalid dept,
             # it will still return status as 200, yet there's no content
-            soup = BeautifulSoup(form_text, "html.parser")
+            soup = BeautifulSoup(form_text, "html5lib")
             table = soup.find("table", attrs = {"id" : "coursetable"})
             if table is None:
                 # this is an abnormal one
@@ -250,7 +255,7 @@ def main():
                 
                 # get description
                 course_number = entry_dic["Course"].split()[1]
-                desc = get_desc('201605', dept, course_number)
+                desc = get_desc('201701', dept, course_number)
                 entry_dic["desc"] = desc
                 dept_table.append(entry_dic)
                 
