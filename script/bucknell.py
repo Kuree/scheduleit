@@ -26,7 +26,12 @@ def parse_raw_hour(raw_time):
         return 0
     start_time_raw = time_range[0]
     end_time_raw = time_range[1]
-    start_time_raw += end_time_raw[-2:]
+	# very special case here
+	# see issue #11
+    if end_time_raw[:2] == "12" and start_time_raw[:2] == "11":
+        start_time_raw += "am"
+    else:
+        start_time_raw += end_time_raw[-2:]
     # for bucknell, end times are always 22 or 52
     start_time = time.strptime(start_time_raw, "%I:%M%p")
     end_time = time.strptime(end_time_raw, "%I:%M%p")
@@ -218,7 +223,7 @@ def main():
             # TODO:
             # one thing to notice is that even if you query an invalid dept,
             # it will still return status as 200, yet there's no content
-            soup = BeautifulSoup(form_text, "html.parser")
+            soup = BeautifulSoup(form_text, "html5lib")
             table = soup.find("table", attrs = {"id" : "coursetable"})
             if table is None:
                 # this is an abnormal one
