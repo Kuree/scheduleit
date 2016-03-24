@@ -13,7 +13,7 @@ import sys
 
 TEMP_FILE_FOLDER = "../temp/bucknell"
 SCHOOL_NAME = "bucknell"
-BAN_LIST = ["OPEN", "OFFG", "OFFD", "OFFF", "OFFL", "LEGL", "FLMS"]
+BAN_LIST = ["OPEN", "OFFV", "OFFB", "OFFG", "OFFD", "OFFF", "OFFL", "LEGL", "FLMS"]
 
 def html_get_text(t):
     return t.get_text().encode("ascii", "ignore").strip()
@@ -302,7 +302,28 @@ def main():
     with open(path +  "/" + term_name + "-tag.json", 'w') as f:
         json.dump(tag_result, f, separators=(',',':'))
         print "tag search file dumped"
-        
+    
+    # dealing with config file
+    with open("../data/config.json", "w+") as f:
+        raw_config = f.read()
+        if len(raw_config) == 0:
+            config = [{"name": SCHOOL_NAME, "term": []}]
+        else:
+            config = json.loads(raw_config)
+        has_found = False
+        for entry in config:
+            if entry["name"] == SCHOOL_NAME:
+                entry["term"].append(term_name)
+                has_found = True
+                break
+        if not has_found:
+            config.append({"name": SCHOOL_NAME, "term": [term_name]}])
+
+        config_output = json.dumps(config)
+        f.seek(0)
+        f.write(config_output)
+        f.truncate()
+        print "config file dumped"
     
 
         
