@@ -9,6 +9,7 @@
 /* global schedule_result */
 /* global current_class_index */
 /* global class_events */
+/* global current_term */
 class_events = [];
 current_class_index = 0;
 schedule_result = [];
@@ -20,6 +21,7 @@ id_to_crn_dict = {};
 linked_course_overriden = {};
 suggestion_list = {};
 selected_course = {};
+current_term = "";
 
 /**
  * Proxy functions for current schedule index.
@@ -911,6 +913,63 @@ function get_save_name(callback) {
     });
 }
 
+
+function get_data(){
+    $.getJSON("data/bucknell/" + current_term + "-search.json", function (search_items) {
+        course_search_table = search_items;
+        $('#tag-search-modal').on('show.bs.modal', function (e) {
+            // first time
+            var isEmpty = $("#tag-content").html() === "";
+            if (isEmpty) {
+                $.getJSON("data/bucknell/" + current_term + "-tag.json", function (tags) {
+                    var sorted_tag_list = Object.keys(tags);
+                    sorted_tag_list.sort();
+                    for (var i = 0; i < sorted_tag_list.length; i++) {
+                        var ccc = sorted_tag_list[i];
+                        $("#sidebar").append('<li><a ref=tag-search>' + ccc + '</a></li>');
+                    }
+                    $("[ref=tag-search]").click(function (e) {
+                        var tag = $(e.target).text();
+                        var p = create_tag_desc(search_items, tags, tag);
+                        $("#tag-content").empty();
+                        $(p).appendTo($('#tag-content')).hide().show(500);
+                    });
+                    var p = create_tag_desc(search_items, tags, ccc);
+                    $("#tag-content").empty();
+                    $(p).appendTo($('#tag-content')).hide().show(500);
+
+                });
+            }
+        });
+
+        setup_typeahead(search_items);
+        search_list = search_items;
+    });
+
+    $.getJSON("data/bucknell/" + current_term + "-courses.json", function (data) {
+        selected_course = {};
+        handle_selection(selected_course);
+
+        course_description_table = data;
+
+        $('#search-button').click(function () {
+            if (Object.keys(selected_course).length === 0) {
+                BootstrapDialog.alert({
+                    type: BootstrapDialog.TYPE_WARNING,
+                    title: "Warning",
+                    message: 'Please select as least one course to schedule.'
+                });
+
+            } else {
+                schedule(selected_course, data, search_list);
+            }
+        });
+
+    });
+
+}
+
+
 $(function () {
     // hide UI item first
     if (!is_local_classes_empty()) {
@@ -972,58 +1031,12 @@ $(function () {
         delete selected_course[ref];
     });
 
-    $.getJSON("data/bucknell/search.json", function (search_items) {
-        course_search_table = search_items;
-        $('#tag-search-modal').on('show.bs.modal', function (e) {
-            // first time
-            var isEmpty = $("#tag-content").html() === "";
-            if (isEmpty) {
-                $.getJSON("data/bucknell/tag.json", function (tags) {
-                    var sorted_tag_list = Object.keys(tags);
-                    sorted_tag_list.sort();
-                    for (var i = 0; i < sorted_tag_list.length; i++) {
-                        var ccc = sorted_tag_list[i];
-                        $("#sidebar").append('<li><a ref=tag-search>' + ccc + '</a></li>');
-                    }
-                    $("[ref=tag-search]").click(function (e) {
-                        var tag = $(e.target).text();
-                        var p = create_tag_desc(search_items, tags, tag);
-                        $("#tag-content").empty();
-                        $(p).appendTo($('#tag-content')).hide().show(500);
-                    });
-                    var p = create_tag_desc(search_items, tags, ccc);
-                    $("#tag-content").empty();
-                    $(p).appendTo($('#tag-content')).hide().show(500);
-
-                });
-            }
-        });
-
-        setup_typeahead(search_items);
-        search_list = search_items;
+    // get the default data
+    $.getJSON("data/config.json", function (data) {
+        current_term = data[0].term[0];
+        get_data();
     });
-
-    $.getJSON("data/bucknell/courses.json", function (data) {
-        selected_course = {};
-        handle_selection(selected_course);
-
-        course_description_table = data;
-
-        $('#search-button').click(function () {
-            if (Object.keys(selected_course).length === 0) {
-                BootstrapDialog.alert({
-                    type: BootstrapDialog.TYPE_WARNING,
-                    title: "Warning",
-                    message: 'Please select as least one course to schedule.'
-                });
-
-            } else {
-                schedule(selected_course, data, search_list);
-            }
-        });
-
-    });
-
+     
     $("#show-left").click(function () {
         set_current_class_index(current_class_index - 1);
     });

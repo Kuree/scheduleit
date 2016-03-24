@@ -313,11 +313,11 @@ def main():
         has_found = False
         for entry in config:
             if entry["name"] == SCHOOL_NAME:
-                entry["term"].append(term_name)
+                if term_name not in entry["term"]: entry["term"].append(term_name)
                 has_found = True
                 break
         if not has_found:
-            config.append({"name": SCHOOL_NAME, "term": [term_name]}])
+            config.append({"name": SCHOOL_NAME, "term": [term_name]})
 
         config_output = json.dumps(config)
         f.seek(0)
