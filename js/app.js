@@ -22,6 +22,7 @@ linked_course_overriden = {};
 suggestion_list = {};
 selected_course = {};
 current_term = "";
+bh_courses = undefined;
 
 /**
  * Proxy functions for current schedule index.
@@ -435,17 +436,19 @@ function is_new_class_conflicted(classes, new_class) {
  * @param  {array} search_items - array object to be displayed in the type script
  */
 function setup_typeahead(search_items) {
+    // need to be extra careful about setting up multiple times   
     var filted_list = $.grep(search_items, function (entry) {
         return entry.is_l !== true;
     });
-    var courses = new Bloodhound({
+    if (typeof bh_courses === "undefined"){
+    bh_courses = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('n'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         local: filted_list
     });
     $('#search .typeahead').typeahead(null, {
         name: 'bucknell-courses',
-        source: courses.ttAdapter(),
+        source: bh_courses.ttAdapter(),
         displayKey: function (e) {
             if (e.nn) {
                 return "nn";
@@ -465,7 +468,13 @@ function setup_typeahead(search_items) {
         },
         limit: 100
     });
+    
     handle_tt_menu();
+    } else{
+        bh_courses.clear();
+        bh_courses.local = filted_list;
+        bh_courses.initialize(true);
+    }
 }
 
 
@@ -631,7 +640,6 @@ function get_search_entry_from_crn(crn) {
 function handle_tt_menu(){
    var menu = $(".tt-menu");
    var parent = menu.parent().parent().parent();
-   console.log(parent.width());
    menu.css("width", parent.width());
 }
 
@@ -850,6 +858,9 @@ function handle_upload() {
     $('#load-modal').modal("show");
 }
 
+String.prototype.capitalize = function() {
+   return this.charAt(0).toUpperCase() + this.slice(1);
+}
 
 function create_tour() {
     // Instance the tour
@@ -913,15 +924,38 @@ function get_save_name(callback) {
     });
 }
 
+function set_current_school_term(term){
+    current_term = term;
+    // clean all the results;
+    class_events = [];
+    current_class_index = 0;
+    schedule_result = [];
+    schedule_result_temp = [];  // this is used as a cache to speed up duplication search
+    color_dict = {};
+    course_description_table = {};
+    course_search_table = [];
+    id_to_crn_dict = {};
+    linked_course_overriden = {};
+    suggestion_list = {};
+    selected_course = {};
+    
+    // clean the UI
+    $("#schedule-row").hide("slow");
+    $(".footer").show("slow");   
+ 
+    // refetch data
+    get_data();
+
+}
 
 function get_data(){
-    $.getJSON("data/bucknell/" + current_term + "-search.json", function (search_items) {
+    $.getJSON("data/" + current_term + "-search.json", function (search_items) {
         course_search_table = search_items;
         $('#tag-search-modal').on('show.bs.modal', function (e) {
             // first time
             var isEmpty = $("#tag-content").html() === "";
             if (isEmpty) {
-                $.getJSON("data/bucknell/" + current_term + "-tag.json", function (tags) {
+                $.getJSON("data/" + current_term + "-tag.json", function (tags) {
                     var sorted_tag_list = Object.keys(tags);
                     sorted_tag_list.sort();
                     for (var i = 0; i < sorted_tag_list.length; i++) {
@@ -946,7 +980,7 @@ function get_data(){
         search_list = search_items;
     });
 
-    $.getJSON("data/bucknell/" + current_term + "-courses.json", function (data) {
+    $.getJSON("data/" + current_term + "-courses.json", function (data) {
         selected_course = {};
         handle_selection(selected_course);
 
@@ -1033,10 +1067,18 @@ $(function () {
 
     // get the default data
     $.getJSON("data/config.json", function (data) {
-        current_term = data[0].term[0];
+        set_current_school_term(data[0].name + "/" +  data[0].term[0]);
+        for(var i = 0; i < data.length; i++){
+            // build the choose section
+            var entry = data[i];
+            $("#term-dropdown").append('<li class="dropdown-header">' + entry.name.capitalize() + '</li>');
+            for(var j = 0; j < entry.term.length; j++){
+                $("#term-dropdown").append('<li ref="term-choice"><a href="#">' + entry.name + "/" + entry.term[j] + '</a></li>');
+            }
+        }
         get_data();
     });
-     
+
     $("#show-left").click(function () {
         set_current_class_index(current_class_index - 1);
     });
@@ -1044,8 +1086,6 @@ $(function () {
     $("#show-right").click(function () {
         set_current_class_index(current_class_index + 1);
     });
-
-
 
     $("#download").click(function () {
         var classes = schedule_result[current_class_index];
@@ -1065,6 +1105,17 @@ $(function () {
 
     $("#toggle-tag-search").click(function () {
         $("#tag-search-modal").modal('toggle');
+    });
+
+    $("#toggle-change-term").popover({ 
+        html : true,
+        title: '<span class="text-info"><strong>Choose the semester &nbsp; </strong></span>' +
+               '<button type="button" id="close" class="close"'+
+               'onclick="$(&quot;#toggle-change-term&quot;).popover(&quot;hide&quot;);">&times;</button>',
+        content: function() {
+            return $("#choose-term-popover").html();
+            },
+        trigger: "click"
     });
 
     $("#jump-schedule").click(function () {
