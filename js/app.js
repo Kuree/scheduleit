@@ -269,6 +269,7 @@ function render_star(score) {
  */
 function render_schedule(classes) {
     // clear the old reference. Due to the implementation of fullCalendar, it's very clumsy
+
     $("#calendar").fullCalendar('removeEventSource', class_events);
     // marking classes
     var marked_classes = [];
@@ -925,15 +926,18 @@ function get_save_name(callback) {
 }
 
 function set_current_school_term(term){
+    // handle the string
+    var is_update = current_term.length === 0? false : true;
     current_term = term;
+    $('#term-string').text(term);
     // clean all the results;
-    class_events = [];
+    // class_events = [];
     current_class_index = 0;
     schedule_result = [];
     schedule_result_temp = [];  // this is used as a cache to speed up duplication search
     color_dict = {};
-    course_description_table = {};
-    course_search_table = [];
+    //course_description_table = {};
+    //course_search_table = [];
     id_to_crn_dict = {};
     linked_course_overriden = {};
     suggestion_list = {};
@@ -942,20 +946,20 @@ function set_current_school_term(term){
     // clean the UI
     $("#schedule-row").hide("slow");
     $(".footer").show("slow");   
- 
+    $("#course-selection").empty(); 
     // refetch data
-    get_data();
+    get_data(is_update);
 
 }
 
-function get_data(){
-    $.getJSON("data/" + current_term + "-search.json", function (search_items) {
+function get_data(is_update){
+    $.getJSON("/data/" + current_term + "-search.json", function (search_items) {
         course_search_table = search_items;
         $('#tag-search-modal').on('show.bs.modal', function (e) {
             // first time
             var isEmpty = $("#tag-content").html() === "";
             if (isEmpty) {
-                $.getJSON("data/" + current_term + "-tag.json", function (tags) {
+                $.getJSON("/data/" + current_term + "-tag.json", function (tags) {
                     var sorted_tag_list = Object.keys(tags);
                     sorted_tag_list.sort();
                     for (var i = 0; i < sorted_tag_list.length; i++) {
@@ -980,13 +984,14 @@ function get_data(){
         search_list = search_items;
     });
 
-    $.getJSON("data/" + current_term + "-courses.json", function (data) {
+    $.getJSON("/data/" + current_term + "-courses.json", function (data) {
         selected_course = {};
-        handle_selection(selected_course);
 
         course_description_table = data;
-
-        $('#search-button').click(function () {
+        if(is_update)
+            return;
+        handle_selection(selected_course);
+        /*$('#search-button').click(function () {
             if (Object.keys(selected_course).length === 0) {
                 BootstrapDialog.alert({
                     type: BootstrapDialog.TYPE_WARNING,
@@ -995,9 +1000,9 @@ function get_data(){
                 });
 
             } else {
-                schedule(selected_course, data, search_list);
+                schedule(selected_course, course_description_table, search_list);
             }
-        });
+        });*/
 
     });
 
@@ -1066,7 +1071,7 @@ $(function () {
     });
 
     // get the default data
-    $.getJSON("data/config.json", function (data) {
+    $.getJSON("/data/config.json", function (data) {
         set_current_school_term(data[0].name + "/" +  data[0].term[0]);
         for(var i = 0; i < data.length; i++){
             // build the choose section
@@ -1076,7 +1081,7 @@ $(function () {
                 $("#term-dropdown").append('<li ref="term-choice"><a href="#">' + entry.name + "/" + entry.term[j] + '</a></li>');
             }
         }
-        get_data();
+        // get_data();
     });
 
     $("#show-left").click(function () {
@@ -1175,10 +1180,27 @@ $(function () {
         });
     });
     
+    $(document).on("click", "[ref=term-choice]", function(e){
+         set_current_school_term($(e.target).text());
+    });
+    
     $( window ).resize(function() {
         handle_tt_menu();
         handle_tooltip();
     });
     
     handle_tooltip();
+
+    $('#search-button').click(function () {
+        if (Object.keys(selected_course).length === 0) {
+            BootstrapDialog.alert({
+                type: BootstrapDialog.TYPE_WARNING,
+                title: "Warning",
+                message: 'Please select as least one course to schedule.'
+            });
+
+        } else {
+            schedule(selected_course, course_description_table, search_list);
+        }
+    });
 });

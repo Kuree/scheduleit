@@ -304,7 +304,7 @@ def main():
         print "tag search file dumped"
     
     # dealing with config file
-    with open("../data/config.json", "w+") as f:
+    with open("../data/config.json", "r+") as f:
         raw_config = f.read()
         if len(raw_config) == 0:
             config = [{"name": SCHOOL_NAME, "term": []}]
@@ -313,7 +313,9 @@ def main():
         has_found = False
         for entry in config:
             if entry["name"] == SCHOOL_NAME:
-                if term_name not in entry["term"]: entry["term"].append(term_name)
+                if term_name not in entry["term"]: 
+                    entry["term"].append(term_name)
+                    print(entry["term"])
                 has_found = True
                 break
         if not has_found:
