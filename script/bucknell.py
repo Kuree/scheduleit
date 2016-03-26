@@ -9,10 +9,11 @@ import os.path
 import os
 import glob
 import copy
+import sys
 
 TEMP_FILE_FOLDER = "../temp/bucknell"
 SCHOOL_NAME = "bucknell"
-BAN_LIST = ["OPEN", "OFFG", "OFFD", "OFFF", "OFFL", "LEGL", "FLMS"]
+BAN_LIST = ["OPEN", "OFFV", "OFFB", "OFFG", "OFFD", "OFFF", "OFFL", "LEGL", "FLMS"]
 
 def html_get_text(t):
     return t.get_text().encode("ascii", "ignore").strip()
@@ -189,6 +190,10 @@ def get_desc(term, dept, course_number):
     return match.group('desc')
     
 def main():
+    if len(sys.argv) < 2:
+        print "Please input term number"
+        exit()
+    term = sys.argv[1]
     # check the temp folder
     temp_path = TEMP_FILE_FOLDER
     if not os.path.exists(temp_path):
@@ -213,7 +218,7 @@ def main():
             payload = {
                 'lookopt' : 'DPT',
                 'frstopt' : '',
-                'term' : '201701',
+                'term' : term,
                 'param1' : dept,
                 'openopt' : 'ALL'}
             r_form = requests.post("https://www.bannerssb.bucknell.edu/ERPPRD/hwzkschd.P_Bucknell_SchedDisplay", 
@@ -258,7 +263,7 @@ def main():
                 
                 # get description
                 course_number = entry_dic["Course"].split()[1]
-                desc = get_desc('201701', dept, course_number)
+                desc = get_desc(term, dept, course_number)
                 entry_dic["desc"] = desc
                 dept_table.append(entry_dic)
                 
@@ -283,18 +288,47 @@ def main():
     if not os.path.exists(path):
         os.makedirs(path)
     
-    with open(path +  "/courses.json", 'w') as f:
+    term_num = int(term[-1])
+    if term_num == 1:
+        term_name = str(int(term[:4]) - 1) + "-fall"
+    else:
+        term_name = term[:4] + "-spring"
+    
+    with open(path +  "/" + term_name + "-courses.json", 'w') as f:
         json.dump(result, f, separators=(',',':'))
         print "course file dumped"
         
-    with open(path +  "/search.json", 'w') as f:
+    with open(path +  "/" + term_name + "-search.json", 'w') as f:
         json.dump(search, f, separators=(',',':'))
         print "search file dumped"
         
-    with open(path +  "/tag.json", 'w') as f:
+    with open(path +  "/" + term_name + "-tag.json", 'w') as f:
         json.dump(tag_result, f, separators=(',',':'))
         print "tag search file dumped"
-        
+    
+    # dealing with config file
+    with open("../data/config.json", "r+") as f:
+        raw_config = f.read()
+        if len(raw_config) == 0:
+            config = [{"name": SCHOOL_NAME, "term": []}]
+        else:
+            config = json.loads(raw_config)
+        has_found = False
+        for entry in config:
+            if entry["name"] == SCHOOL_NAME:
+                if term_name not in entry["term"]: 
+                    entry["term"].append(term_name)
+                    print(entry["term"])
+                has_found = True
+                break
+        if not has_found:
+            config.append({"name": SCHOOL_NAME, "term": [term_name]})
+
+        config_output = json.dumps(config)
+        f.seek(0)
+        f.write(config_output)
+        f.truncate()
+        print "config file dumped"
     
 
         

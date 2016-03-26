@@ -12,6 +12,7 @@
     <div class="pull-right" id="header-icon">
         <a><i style="margin-top: 2vh; margin-right:2vh; color:#7B7B7B" data-toggle="tooltip" data-placement="left" title="Course requirements lookup" class="fa fa-search fa-2x" id="toggle-tag-search"></i></a>
         <a><i style="margin-top: 2vh; margin-right:2vh; color:#7B7B7B" data-toggle="tooltip" data-placement="left" title="Toggle web tour" class="fa fa-question fa-2x" id="toggle-web-tour"></i></a>
+        <a><i style="margin-top: 2vh; margin-right:2vh; color:#7B7B7B" data-toggle="popover" data-trigger="focus" data-placement="left" class="fa fa-archive fa-2x" id="toggle-change-term"></i></a>
     </div>
     <!-- Modal -->
     <div class="modal fade" id="tag-search-modal" tabindex="-1" role="dialog" aria-labelledby="tag-search">
@@ -164,8 +165,14 @@
         </div>
       </div>
     </div>
+    <div id="choose-term-popover" class="hide">
+        <div class="btn-group btn-block" id="choose-term-div">
+            <button class="btn btn-default btn-block dropdown-toggle" type="button" data-toggle="dropdown"><span id="term-string">default</span></button>
+            <ul class="dropdown-menu" style="width: 100%;" id="term-dropdown">
+            </ul>
+        </div> 
+    </div>
 </body>
 
 </html>
 <link rel="stylesheet" href="css/vendor.min.css" type="text/css" />
-<link rel="stylesheet" href="css/app.css" type="text/css" />

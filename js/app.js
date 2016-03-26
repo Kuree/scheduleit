@@ -9,6 +9,7 @@
 /* global schedule_result */
 /* global current_class_index */
 /* global class_events */
+/* global current_term */
 class_events = [];
 current_class_index = 0;
 schedule_result = [];
@@ -20,6 +21,8 @@ id_to_crn_dict = {};
 linked_course_overriden = {};
 suggestion_list = {};
 selected_course = {};
+current_term = "";
+bh_courses = undefined;
 
 /**
  * Proxy functions for current schedule index.
@@ -266,6 +269,7 @@ function render_star(score) {
  */
 function render_schedule(classes) {
     // clear the old reference. Due to the implementation of fullCalendar, it's very clumsy
+
     $("#calendar").fullCalendar('removeEventSource', class_events);
     // marking classes
     var marked_classes = [];
@@ -433,17 +437,19 @@ function is_new_class_conflicted(classes, new_class) {
  * @param  {array} search_items - array object to be displayed in the type script
  */
 function setup_typeahead(search_items) {
+    // need to be extra careful about setting up multiple times   
     var filted_list = $.grep(search_items, function (entry) {
         return entry.is_l !== true;
     });
-    var courses = new Bloodhound({
+    if (typeof bh_courses === "undefined"){
+    bh_courses = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('n'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
         local: filted_list
     });
     $('#search .typeahead').typeahead(null, {
         name: 'bucknell-courses',
-        source: courses.ttAdapter(),
+        source: bh_courses.ttAdapter(),
         displayKey: function (e) {
             if (e.nn) {
                 return "nn";
@@ -463,7 +469,13 @@ function setup_typeahead(search_items) {
         },
         limit: 100
     });
+    
     handle_tt_menu();
+    } else{
+        bh_courses.clear();
+        bh_courses.local = filted_list;
+        bh_courses.initialize(true);
+    }
 }
 
 
@@ -629,7 +641,6 @@ function get_search_entry_from_crn(crn) {
 function handle_tt_menu(){
    var menu = $(".tt-menu");
    var parent = menu.parent().parent().parent();
-   console.log(parent.width());
    menu.css("width", parent.width());
 }
 
@@ -848,6 +859,9 @@ function handle_upload() {
     $('#load-modal').modal("show");
 }
 
+String.prototype.capitalize = function() {
+   return this.charAt(0).toUpperCase() + this.slice(1);
+}
 
 function create_tour() {
     // Instance the tour
@@ -911,6 +925,90 @@ function get_save_name(callback) {
     });
 }
 
+function set_current_school_term(term){
+    // handle the string
+    var is_update = current_term.length === 0? false : true;
+    current_term = term;
+    $('#term-string').text(term);
+    // clean all the results;
+    // class_events = [];
+    current_class_index = 0;
+    schedule_result = [];
+    schedule_result_temp = [];  // this is used as a cache to speed up duplication search
+    color_dict = {};
+    //course_description_table = {};
+    //course_search_table = [];
+    id_to_crn_dict = {};
+    linked_course_overriden = {};
+    suggestion_list = {};
+    selected_course = {};
+    
+    // clean the UI
+    $("#schedule-row").hide("slow");
+    $(".footer").show("slow");   
+    $("#course-selection").empty(); 
+    // refetch data
+    get_data(is_update);
+
+}
+
+function get_data(is_update){
+    $.getJSON("/data/" + current_term + "-search.json", function (search_items) {
+        course_search_table = search_items;
+        $('#tag-search-modal').on('show.bs.modal', function (e) {
+            // first time
+            var isEmpty = $("#tag-content").html() === "";
+            if (isEmpty) {
+                $.getJSON("/data/" + current_term + "-tag.json", function (tags) {
+                    var sorted_tag_list = Object.keys(tags);
+                    sorted_tag_list.sort();
+                    for (var i = 0; i < sorted_tag_list.length; i++) {
+                        var ccc = sorted_tag_list[i];
+                        $("#sidebar").append('<li><a ref=tag-search>' + ccc + '</a></li>');
+                    }
+                    $("[ref=tag-search]").click(function (e) {
+                        var tag = $(e.target).text();
+                        var p = create_tag_desc(search_items, tags, tag);
+                        $("#tag-content").empty();
+                        $(p).appendTo($('#tag-content')).hide().show(500);
+                    });
+                    var p = create_tag_desc(search_items, tags, ccc);
+                    $("#tag-content").empty();
+                    $(p).appendTo($('#tag-content')).hide().show(500);
+
+                });
+            }
+        });
+
+        setup_typeahead(search_items);
+        search_list = search_items;
+    });
+
+    $.getJSON("/data/" + current_term + "-courses.json", function (data) {
+        selected_course = {};
+
+        course_description_table = data;
+        if(is_update)
+            return;
+        handle_selection(selected_course);
+        /*$('#search-button').click(function () {
+            if (Object.keys(selected_course).length === 0) {
+                BootstrapDialog.alert({
+                    type: BootstrapDialog.TYPE_WARNING,
+                    title: "Warning",
+                    message: 'Please select as least one course to schedule.'
+                });
+
+            } else {
+                schedule(selected_course, course_description_table, search_list);
+            }
+        });*/
+
+    });
+
+}
+
+
 $(function () {
     // hide UI item first
     if (!is_local_classes_empty()) {
@@ -972,56 +1070,18 @@ $(function () {
         delete selected_course[ref];
     });
 
-    $.getJSON("data/bucknell/search.json", function (search_items) {
-        course_search_table = search_items;
-        $('#tag-search-modal').on('show.bs.modal', function (e) {
-            // first time
-            var isEmpty = $("#tag-content").html() === "";
-            if (isEmpty) {
-                $.getJSON("data/bucknell/tag.json", function (tags) {
-                    var sorted_tag_list = Object.keys(tags);
-                    sorted_tag_list.sort();
-                    for (var i = 0; i < sorted_tag_list.length; i++) {
-                        var ccc = sorted_tag_list[i];
-                        $("#sidebar").append('<li><a ref=tag-search>' + ccc + '</a></li>');
-                    }
-                    $("[ref=tag-search]").click(function (e) {
-                        var tag = $(e.target).text();
-                        var p = create_tag_desc(search_items, tags, tag);
-                        $("#tag-content").empty();
-                        $(p).appendTo($('#tag-content')).hide().show(500);
-                    });
-                    var p = create_tag_desc(search_items, tags, ccc);
-                    $("#tag-content").empty();
-                    $(p).appendTo($('#tag-content')).hide().show(500);
-
-                });
+    // get the default data
+    $.getJSON("/data/config.json", function (data) {
+        set_current_school_term(data[0].name + "/" +  data[0].term[0]);
+        for(var i = 0; i < data.length; i++){
+            // build the choose section
+            var entry = data[i];
+            $("#term-dropdown").append('<li class="dropdown-header">' + entry.name.capitalize() + '</li>');
+            for(var j = 0; j < entry.term.length; j++){
+                $("#term-dropdown").append('<li ref="term-choice"><a href="#">' + entry.name + "/" + entry.term[j] + '</a></li>');
             }
-        });
-
-        setup_typeahead(search_items);
-        search_list = search_items;
-    });
-
-    $.getJSON("data/bucknell/courses.json", function (data) {
-        selected_course = {};
-        handle_selection(selected_course);
-
-        course_description_table = data;
-
-        $('#search-button').click(function () {
-            if (Object.keys(selected_course).length === 0) {
-                BootstrapDialog.alert({
-                    type: BootstrapDialog.TYPE_WARNING,
-                    title: "Warning",
-                    message: 'Please select as least one course to schedule.'
-                });
-
-            } else {
-                schedule(selected_course, data, search_list);
-            }
-        });
-
+        }
+        // get_data();
     });
 
     $("#show-left").click(function () {
@@ -1032,11 +1092,11 @@ $(function () {
         set_current_class_index(current_class_index + 1);
     });
 
-
-
     $("#download").click(function () {
         var classes = schedule_result[current_class_index];
         var url = "download.html?";
+        // append the curren term
+        url += "term=" + current_term + "&";
         for (var i = 0; i < classes.length; i++) {
             var key = classes[i].crn;
             url += key + "=" + key + "&"
@@ -1052,6 +1112,17 @@ $(function () {
 
     $("#toggle-tag-search").click(function () {
         $("#tag-search-modal").modal('toggle');
+    });
+
+    $("#toggle-change-term").popover({ 
+        html : true,
+        title: '<span class="text-info"><strong>Choose the semester &nbsp; </strong></span>' +
+               '<button type="button" id="close" class="close"'+
+               'onclick="$(&quot;#toggle-change-term&quot;).popover(&quot;hide&quot;);">&times;</button>',
+        content: function() {
+            return $("#choose-term-popover").html();
+            },
+        trigger: "click"
     });
 
     $("#jump-schedule").click(function () {
@@ -1111,10 +1182,27 @@ $(function () {
         });
     });
     
+    $(document).on("click", "[ref=term-choice]", function(e){
+         set_current_school_term($(e.target).text());
+    });
+    
     $( window ).resize(function() {
         handle_tt_menu();
         handle_tooltip();
     });
     
     handle_tooltip();
+
+    $('#search-button').click(function () {
+        if (Object.keys(selected_course).length === 0) {
+            BootstrapDialog.alert({
+                type: BootstrapDialog.TYPE_WARNING,
+                title: "Warning",
+                message: 'Please select as least one course to schedule.'
+            });
+
+        } else {
+            schedule(selected_course, course_description_table, search_list);
+        }
+    });
 });
