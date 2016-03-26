@@ -13,6 +13,7 @@
     <script type="text/javascript" src="js/pdf.min.js"></script>
     <script>
     var class_list = [];
+    var term_test = "";
     function getJsonFromUrl(hashBased) {
       var query;
       if(hashBased) {
@@ -41,16 +42,20 @@
         }
       });
       for(var key in result){
-        class_list.push(result[key]);
+        if(key === "term"){
+            term_string = result[key];
+        } else {
+            class_list.push(result[key]);
+        }
       }
-      return result;
+      return class_list;
     }
     $(function() {
         var classes = getJsonFromUrl(null);
-        $.getJSON( "data/bucknell/courses.json", function(course_data){
+        $.getJSON( "data/" + term_string + "-courses.json", function(course_data){
             // build a table there
-            for(var key in classes){
-                var crn = classes[key];
+            for(var i = 0; i < classes.length; i++){
+                var crn = classes[i];
                 var name = course_data[crn].n;
                 var instructor = course_data[crn].i;
                 $("#course-table").append("<tr><td>" + crn + "</td><td>" + name + " </td><td>" + instructor + "</td></tr>");
