@@ -1095,6 +1095,8 @@ $(function () {
     $("#download").click(function () {
         var classes = schedule_result[current_class_index];
         var url = "download.html?";
+        // append the curren term
+        url += "term=" + current_term + "&";
         for (var i = 0; i < classes.length; i++) {
             var key = classes[i].crn;
             url += key + "=" + key + "&"
