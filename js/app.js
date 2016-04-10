@@ -1202,7 +1202,7 @@ $(function () {
             });
 
         } else {
-            schedule(selected_course, course_description_table, search_list);
+            schedule(selected_course, course_description_table, course_search_table);
         }
     });
 });
