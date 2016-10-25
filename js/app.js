@@ -981,7 +981,6 @@ function get_data(is_update){
         });
 
         setup_typeahead(search_items);
-        search_list = search_items;
     });
 
     $.getJSON("/data/" + current_term + "-courses.json", function (data) {
@@ -1016,7 +1015,6 @@ $(function () {
     }
     
     // download the search_items
-    var search_list = [];
     $('#calendar').fullCalendar({
         height: "auto",
         weekends: false, // will hide Saturdays and Sundays
