@@ -699,6 +699,7 @@ function add_class_entry_to_selected(entry, supress_link, r_id) {
         var id = li.attr("ref");
         // need to change the text without removing its child element
         $("#" + id).contents().filter(function(){ return this.nodeType == 3; }).first().replaceWith(text).fadeIn(200);
+        schedule(selected_course, course_description_table, course_search_table);
     });
 
     // add it to the selected courses if it's not a linked list
